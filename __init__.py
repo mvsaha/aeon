@@ -65,7 +65,15 @@ class DateRange:
 
             self._end,self._start=self._start,self._end
 
-        
+        # Remember the type of date that we are storing
+        if self._start is not None:
+            self._dateclass = type(self._start)
+        elif self._end is not None:
+            self._dateclass = type(self._end)
+        else:
+            self._dateclass = None
+
+
     def _validate(self,d):
         # Returns true if d matches type({start,end}) or is None.
         if d is None:
@@ -131,7 +139,7 @@ class DateRange:
         #    ValueError: if setdate < start
 
         if setdate is not False:
-            if setdate is None or self._start is None:
+            if setdate is None:
                 self._end = None
 
             elif isinstance(setdate,type(self._start)):
@@ -272,9 +280,8 @@ class DateRange:
     def __le__(self,date):
         return self.__lt__(date) or self.__contains__(date)
     
-
+    # Probably should remove this...
     def __getitem__(self,i):
-        ##
         if i is 0:
             return self._start
         elif i is 1:
@@ -298,7 +305,36 @@ class DateRange:
         return self.__str__()
     
 
-    def vhours(self,reverse=False):
+    def _cast(self,d):
+        # DESCRIPTION:
+        #    Cast a datetime.datetime object into a type that matches
+        #    start or end.
+        #
+        # PARAMS:
+        #    d: datetime.datetime
+        #
+        # RETURNS:
+        #    date if start or end are dates and datetime if start or end are
+        #    datetimes. If both start and end are None (unbounded), then
+        #    returns d unchanged.
+        # 
+        # RAISES:
+        #    TypeError: if trying to convert from datetime to date (resulting
+        #               in a loss of resolution).
+        
+        if self._dateclass is None or type(d) is self._dateclass:
+            return d
+        else:
+            try:
+                d = d.date()
+                if not self._validate(d):
+                    raise TypeError('Cannot cast from '+type(d)+' to '+
+                        self._dateclass)
+            except:
+                raise TypeError('Cannot cast from '+type(d)+' to '+
+                    self._dateclass)
+
+    def hours(self,reverse=False):
         if reverse:
             if self._end is None:
                 raise Exception("Cannot start at infinity.")
@@ -317,7 +353,7 @@ class DateRange:
             d += dtime
     
 
-    def vdays(self,reverse=False):
+    def days(self,reverse=False):
         if reverse:
             if self._end is None:
                 raise Exception("Cannot start at infinity.")
@@ -336,26 +372,41 @@ class DateRange:
             d += dtime
 
 
-    def pentads(self,reverse=False):
+    def pentads(self,reverse=False,snap=False):
         if reverse:
             if self._end is None:
                 raise ValueError('Cannot start at infinity.')
             dpentad = -1
-            d = self._end
+            d1 = self._end
             end = self._start
         else:
             if self._start is None:
                 raise ValueError('Cannot start at infinity.')
             dpentad = 1
-            d = self._start
+            d1 = self._start
             end = self._end
 
+        p1 = date_to_pentad(d1) # Pentad containing start date
 
-        p = date_to_pentad(d) # Pentad containing start date
+        #offset = self._cast(pentad_to_date(d.year,p)) - p1
 
-        if pentad_to_datetime(d.year,p) not in self:
-            dy,p = bound_pentad(p+dpentad) # Go to the nearest pentad
-            d = pentad_to_datetime(d.year+dy,p)
+        if self._cast(pentad_to_datetime(d1.year,p1)) not in self:
+            dy,p = bound_pentad(p1+dpentad) # Go to the nearest pentad
+            d = self._cast(pentad_to_datetime(d1.year+dy,p))
+            p_offset = d1-self._cast(pentad_to_datetime(d1.year,p1))
+        else:
+            p = p1
+            d = d1
+            p_offset = datetime.timedelta(0)
+
+        print('p  ',p)
+        print('d',d)
+        print('p1 ',p1)
+        print('d1 ',d1)
+        print('offset',p_offset)
+
+        if snap is not True:
+            d = d1
 
         while d in self:
             
@@ -364,14 +415,18 @@ class DateRange:
             p = date_to_pentad(d)
             p += dpentad
             dy,p = bound_pentad(p)
-            d = pentad_to_datetime(d.year+dy,p)
+
+            if snap is True:
+                d = self._cast(pentad_to_datetime(d.year+dy,p))
+            else:
+                d = self._cast(pentad_to_datetime(d.year+dy,p)) + p_offset
 
 
     def rpentads(self,reverse=False):
         pass
 
     
-    def vmonths(self,reverse=False):
+    def months(self,reverse=False):
         
         if reverse:
             if self._end is None:
@@ -398,7 +453,7 @@ class DateRange:
                 d.minute,d.second,d.microsecond)
     
     
-    def vyears(self,reverse=False):
+    def years(self,reverse=False,snap=True):
         if reverse:
             if self._end is None:
                 raise Exception("Cannot start at infinity.")
