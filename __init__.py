@@ -6,215 +6,243 @@ __author__ = "Michael Vijay Saha"
 import datetime
 
 class DateRange:
-    #    A class for specifying a line segment (or line, or ray) on the arrow
+    #    A class for specifying a line segment (or ray, or line) on the arrow
     #    of time.
-    
+
     def __init__(self,date1,date2=None):
         # DESCRIPTION:
-        #    Build a datetime.datetime object
+        #    Build a DateRange object
         #
         # PARAMS:
         #    date1: datetime.date(time) | None | DateRange
         #       One time bound (not necesarily the first one chronologically)
         #       or a DateRange object (in which case date2 is not needed).
         #
-        #    [date2]: datetime.date(time) | None | datetime.timedelta
-        #       Another time bound or a time period. If date2 is a timedelta
-        #       it can be negative.
-        #
-        # RETURNS:
-        #    Nothing
+        #    [date2]=None: datetime.date(time) | None | datetime.timedelta
+        #       Another time bound or a time period.
         #
         # NOTES:
-        #    date1 and date2 will be reordered internally, so date1 does not
-        #    necessarily need to be before date2.
+        #    If both date1 and date2 are dates, they must have identical
+        #    types. Date1 and date2 will be reordered internally, so date1 
+        #    does not necessarily need to be before date2. If date2 is a 
+        #    timedelta it can be negative.
         #
         # RAISES:
-        #    TypeError if date1 or date2 is not of an approprite type
+        #    TypeError: if date1 or date2 is not of an approprite type.
+        #    ValueError: if date2 is specified when the input (date1) is a
+        #       DateRange.
         
-        if date1 is None:
-            self._start = None
+        self._start = None # Set these so that we can use validate()
+        self._end = None   
 
-        elif isinstance(date1,self.type):
-            
-
-        elif isinstance(date1,datetime.date):
-            self._start = date1
-
-            if date2 is None:
-                self._end = None
-
-            elif isinstance(date2,datetime.date):
-                self._end = date2
-
-            elif isinstance(date2,datetime.timedelta):
-                self._end = self._start + date2
-
+        # Construction by DateRange (a special case)
+        if isinstance(date1,type(self)):
+            if date2 is not None:
+                raise ValueError('If date1 is a DateRange then date2 must'+
+                    'be left empty')
             else:
-                raise TypeError('Argument 2 must be None, '+
-                    'datetime.datetime or datetime.timedelta')
+                self._start = date1.start()
+                self._end =   date1.end()
 
         else:
-            raise TypeError('Argument 1 must be None or datetime.datetime')
+            if self._validate(date1):
+                self._start = date1
+            else:
+                raise TypeError('date1 must be None or datetime.date(time)')
+            
+            if self._validate(date2):
+                self._end = date2
+            elif isinstance(date2,datetime.timedelta):
+                self._end = self._start + date2
+            else:
+                raise TypeError('date2 must be None, '+str(type(self._start))+
+                    'or datetime.timedelta, not '+str(type(date2)))
 
-        # Make sure that _end is ALWAYS chronologically last if both bounds 
-        # are finite
-        if self._end and self._start and self._start>self._end:
+        # If both bounds are finite order them chronologically
+        if (self._end is not None and
+            self._start is not None and
+            self._start>self._end):
+
             self._end,self._start=self._start,self._end
 
-    def start(self,set_date=False):
+        
+    def _validate(self,d):
+        # Returns true if d matches type({start,end}) or is None.
+        if d is None:
+            return True
+
+        if self._start is None:
+            if self._end is None: # If both are None
+                return isinstance(d,datetime.date)
+            else:
+                return isinstance(d,type(self._end))
+        else:
+            return isinstance(d,type(self._start))
+
+
+    def start(self,setdate=False):
         # DESCRIPTION:
-        #    Get or set the starting period for DateRange
+        #    Get or set the earliest bound for DateRange
         #    
         # PARAMS:
-        #    [setdate]: datetime.date(time) object  
+        #    [setdate]: datetime.date(time) | None 
         #
         # RETURNS:
-        #    datetime.date(time) if set is not specified (getter mode)
+        #    [datetime.date(time)] if set is not specified (getter mode)
         #
         # RAISES:
-        #    TypeError: if setdate is not a datetime.date(time)
-        #    ValueError: if setdate > end date
+        #    TypeError: if setdate does not match type(end)
+        #    ValueError: if setdate > end
 
-        if set_date is not False:
-            if date1 is None:
-                self.start = None
-            elif isinstance(set_date,datetime.date):
-                set_date = self.date_to_datetime(set_date)
-                if set_date > self._end:
-                    raise Exception('Cannot set start to be before end: %s',
-                        set_date)
-                self._start = set_date
+        if setdate is not False:
+            if setdate is None or self._end is None:
+                self._start = None
+
+                if self._end is None:
+                    self._nobounds = True
+
+            elif isinstance(setdate,type(self._end)):
+                if setdate > self._end:
+                    raise ValueError('Cannot set start to be before end: '+
+                        str(setdate))
+                
+                self._start = setdate
+
             else:
-                raise Exception('Can only set end() to None or '+
-                    'datetime.datetime:%s',set_date)
+                raise TypeError('Can only set start to None or '+
+                    str(type(self._end))+', not '+str(type(setdate)))
+
         else:
             return self._start
 
+
     def end(self,setdate=False):
         # DESCRIPTION:
-        #    Get or set the ending period for DateRange
+        #    Get or set the latest bound for DateRange
         #    
         # PARAMS:
-        #    [setdate]: datetime.datetime object  
+        #    [setdate]: datetime.date(time) | other  
         #
         # RETURNS:
-        #    datetime.datetime if set is not specified (getter mode)
+        #    [datetime.date(time)] if setdate is not specified (getter mode)
         #
         # RAISES:
-        #    TypeError: if setdate is not a datetime.datetime
-        #    ValueError: if setdate < start date
+        #    TypeError: if setdate does not match type(start)
+        #    ValueError: if setdate < start
 
         if setdate is not False:
-            if not isinstance(setdate,datetime.datetime):
-                raise TypeError('Must be a ')
-
-            if setdate is None:
+            if setdate is None or self._start is None:
                 self._end = None
 
-            elif setdate < self._start:
-                raise ValueError('Cannot set end to be before start: %s',
-                    setdate)
+            elif isinstance(setdate,type(self._start)):
+                if setdate < self._start:
+                    raise ValueError('Cannot set start to be before end: '+
+                        str(setdate))
+                
+                self._end = setdate
 
-            self._end = setdate
+            else:
+                raise TypeError('Can only set start to None or '+
+                    str(type(self._end))+', not '+str(type(setdate)))
 
         else:
             return self._end
 
-    def __contains__(self,other):
-        # Try converting if necessary
-        if not isinstance(other,datetime.date):
-            try:
-                other = other.date()
-                assert(isinstance(other,datetime.date))
-            except:
-                raise Exception('Not convertible to datetime.date or'+
-                    ' datetime.datetime comparison')
 
-        # If we have a datetime
-        if isinstance(other,datetime.datetime):
-            if self._start and self._end:
-                return other>=self._start and other<=self._end
-            elif self._start:
-                return other>=self._start
-            elif self._end:
-                return other<=self._end
-            else: # Both dates are none and therefore contain all dates
+    def __contains__(self,d):
+        # DESCRIPTION:
+        #    Check if a value is inside this DateRange.
+        #
+        # PARAMS:
+        #    d: datetime.date(time)
+        #
+        # RETURNS:
+        #    bool
+        #
+        # NOTES:
+        #    This will does not do any explicit error checking. Rather, an
+        #    error will be called if d is not None and is not comparable to
+        #    start, end or both.
+        #
+        # RAISES:
+        #    TypeError: if d in not comparable to start or end
+        
+        if self._start is None: # No lower bound
+            if self._end is None:
                 return True
+            else:
+                return self._end >= d
+        else:                   # Finite lower bound
+            if self._end is None:
+                return self._start <= d
+            else:
+                return self._start <= d and self._end >= d
 
-        else:
-            assert(isinstance(other,datetime.date))
-            if self._start and self._end:
-                return other>=self._start.date() and other<=self._end.date()
-            elif self._start:
-                return other>=self._start.date()
-            elif self._end:
-                return other<=self._end.date()
-            else: # Both dates are none and therefore contain all dates
-                return True
         
     def contains(self,date):
+        # DESCRIPTION:
+        #    Check if a value is inside this DateRange.
+        #
+        # PARAMS:
+        #    d: datetime.date(time) | other
+        #
+        # RETURNS: bool
+        # 
+        # RAISES:
+        #    TypeError: if d is not of type({start,end})
+
         return self.__contains__(date)
+
 
     def intersection(self,other):
         # DESCRIPTION:
         #    Find the intersection of this DateRange with another DateRange.
         #
         # PARAMS:
-        #    other:DateRange
+        #    other: DateRange
         #
         # RETURNS:
-        #    DateRange representing the intersection of this object with another.
+        #    DateRange representing the intersection of this object with
+        #    another.
         #
         # NOTES:
+        #    Returns None if self and other do not overlap
         #
         # RAISES:
-        #    Nothing
+        #    TypeError: if other is not a DateRange
+        
+        if other is self:
+            return other
 
-        if self is other: # Check for self comparison
-            return self
-
-        elif isinstance(other,self.__class__): # both DateRange
-
-            if other._end and self._start: # If there are non-overlapping
-                if other._end < self._start:
-                    return DateList([])
-            elif other._start and self._end:
-                if other._start > self._end:
-                    return DateList([])
-
-            if other._start and self._start:
-                start = max(other._start,self._start)
-            elif other._start:
-                start = other._start
-            elif self._start:
-                start = self._start
-            else:
+        if isinstance(other,type(self)):
+            
+            if other._start is None and self.start is None:
                 start = None
-
-            if other._end and self._end:
-                end = min(other._end,self._end)
-            elif other._end:
-                end = other._end
-            elif self._end:
-                end = self._end
+            elif other._start is None:
+                start = self._start
+            elif self._start is None:
+                start = other._start
             else:
+                start = max(other._start,self._start)
+
+            if other._end is None and self.start is None:
                 end = None
+            elif other._end is None:
+                end = self._end
+            elif self._end is None:
+                end = other._end
+            else:
+                end = min(other._end,self._end)
 
-            return DateRange((start,end))
+            return DateRange(start,end)
 
-        else: # Dates must be a DateList
-            return DateList([ d for d in other._dates if self.contains(d) ])
-    
-    def date_to_datetime(self,d):
-        return datetime.datetime(*d.timetuple()[:6])
 
     def span(self):
         # DESCRIPTION:
         #    Find out the length of time between the first and second date
         #
         # PARAMS:
-        #    NONE
+        #    None
         #
         # RETURNS:
         #    datetime.timedelta representing the length of time spanned
@@ -228,45 +256,23 @@ class DateRange:
         if self._end is not None or self._start is not None:
             return self._end - self._start
 
-    def __lt__(self,date):
-        # Returns True if and only if the date is greater than _end
-        # If _end of the DateRange is open (i.e None) it will return False
-        print('calling __lt__()')
-        # Try to cast it as a datetime.date
-        if not isinstance(date,datetime.datetime):
-            try:
-                date = date_to_datetime(date)
-            except:
-                raise Exception('Invalid comparison')
 
-        if self._end is None:
-            return False
-        else:
-            return date > self._end
+    def __lt__(self,date):
+        return date > self._end
+
 
     def __gt__(self,date):
-        print('calling __gt__()')
-        # Try to cast it as a datetime.date
-        if not isinstance(date,datetime.datetime):
-            try:
-                date = date_to_datetime(date)
-            except:
-                raise Exception('Invalid comparison')
-
-        if self._start is None:
-            return False
-        else:
-            return date < self._start
-
+        return date < self._start
     
+
     def __ge__(self,date):
         return self.__gt__(date) or self.__contains__(date)
     
-    
+
     def __le__(self,date):
         return self.__lt__(date) or self.__contains__(date)
     
-    
+
     def __getitem__(self,i):
         ##
         if i is 0:
@@ -291,7 +297,8 @@ class DateRange:
     def __repr__(self):
         return self.__str__()
     
-    def hours(self,reverse=False):
+
+    def vhours(self,reverse=False):
         if reverse:
             if self._end is None:
                 raise Exception("Cannot start at infinity.")
@@ -309,7 +316,8 @@ class DateRange:
             yield d
             d += dtime
     
-    def days(self,reverse=False):
+
+    def vdays(self,reverse=False):
         if reverse:
             if self._end is None:
                 raise Exception("Cannot start at infinity.")
@@ -317,7 +325,7 @@ class DateRange:
             d = self._end
             end = self._start
         else:
-            if self._end is None:
+            if self._start is None:
                 raise Exception("Cannot start at infinity.")
             dtime = datetime.timedelta(days=1)
             d = self._start
@@ -326,19 +334,54 @@ class DateRange:
         while d in self:
             yield d
             d += dtime
+
+
+    def pentads(self,reverse=False):
+        if reverse:
+            if self._end is None:
+                raise ValueError('Cannot start at infinity.')
+            dpentad = -1
+            d = self._end
+            end = self._start
+        else:
+            if self._start is None:
+                raise ValueError('Cannot start at infinity.')
+            dpentad = 1
+            d = self._start
+            end = self._end
+
+
+        p = date_to_pentad(d) # Pentad containing start date
+
+        if pentad_to_datetime(d.year,p) not in self:
+            dy,p = bound_pentad(p+dpentad) # Go to the nearest pentad
+            d = pentad_to_datetime(d.year+dy,p)
+
+        while d in self:
+            
+            yield d
+
+            p = date_to_pentad(d)
+            p += dpentad
+            dy,p = bound_pentad(p)
+            d = pentad_to_datetime(d.year+dy,p)
+
+
+    def rpentads(self,reverse=False):
+        pass
+
     
-    
-    def months(self,reverse=False):
+    def vmonths(self,reverse=False):
         
         if reverse:
             if self._end is None:
-                raise Exception("Cannot start at infinity.")
+                raise ValueError("Cannot start at infinity.")
             dmonth = -1
             d = self._end
             end = self._start
         else:
-            if self._end is None:
-                raise Exception("Cannot start at infinity.")
+            if self._start is None:
+                raise ValueError("Cannot start at infinity.")
             dmonth = 1
             d = self._start
             end = self._end
@@ -349,13 +392,13 @@ class DateRange:
             yield d
             
             m += dmonth
-            (dy,m) = self._bound_month(m)
+            (dy,m) = bound_month(m)
             
             d = datetime.datetime(d.year+dy,m,d.day,d.hour,
                 d.minute,d.second,d.microsecond)
     
     
-    def years(self,to=None,reverse=False):
+    def vyears(self,reverse=False):
         if reverse:
             if self._end is None:
                 raise Exception("Cannot start at infinity.")
@@ -373,66 +416,11 @@ class DateRange:
             d = datetime.datetime(y,d.month,d.day,d.hour,
                 d.minute,d.second,d.microsecond)
 
-    def cycle(self,to=None,reverse=False):
+
+    def cycle(self,reverse=False):
         pass
 
-class DateList:
 
-    def __init__(self,dates):
-        if isinstance(dates,datetime.datetime):
-            self._dates = [dates]
-
-        elif not len(dates):
-            self._dates = []
-
-        else:
-            # Check iterability
-            for i in dates:
-                if not isinstance(i,datetime.date):
-                    raise Exception("Invalid input: 'dates' must be an iterable \
-                        collection of datetime.datetime objects")
-            self._dates = dates;
-
-    def __getitem__(self,i):
-        return self.dates[i]
-
-    def __repr__(self):
-        if len(self._dates) == 0:
-            return 'DateList(Empty DateList)'
-        else:
-            return 'DateList('+str(len(self._dates))+' dates from '+ \
-                str(self._dates[0])+' to '+str(self._dates[-1])+')'
-    
-    def __str__(self):
-        return self.__repr__()
-
-    def __iter__(self):
-        return self._dates.__iter__() # Passthrough to date list
-
-    def __len__(self):
-        return len(self._dates)
-
-    def __nonzero__(self):
-        return self.__len__()
-
-    def __contains__(self,date):
-        if isinstance(date,datetimes.datetime):
-            return date in self._dates
-        elif isinstance(date,File):
-            return date._date in self._dates
-
-    def contains(self,date):
-        return self.__contains__(date)
-
-    def intersection(self,dates):
-        return DateList([d for d in self._dates if dates.contains(d)])
-
-def _days_in_month(y,m):
-            m += 1
-            if m >= 13:
-                m = m - 12
-                y += 1
-            return (datetime.date()-datetime.timedelta(days=1)).days
 
 
 def date_to_dayofyear(d):
@@ -445,6 +433,10 @@ def date_to_dayofyear(d):
 
 
 def dayofyear_to_date(year,doy):
+    return datetime.date(year,1,1)+datetime.timedelta(days=doy-1)
+
+
+def dayofyear_to_datetime(year,doy):
     return datetime.datetime(year,1,1)+datetime.timedelta(days=doy-1)
 
 
@@ -459,7 +451,8 @@ def days_in_month(y,m):
 
 def date_to_pentad(d):
     # Convert a datetime.date object to a yearly pentad in the range [1,73]
-    # For leap years the last day of the year (day 366) is put in the last pentad
+    # For leap years the last day of the year (day 366) is put in the last
+    #pentad
     # The input can also be an integer corresponding to the day of year
     
     if isinstance(d,int):
@@ -480,11 +473,12 @@ def pentad_to_dayofyear(pentad):
     # Returns an int corresponding to the day of year
     return ((pentad-1)*5)+1
 
-
-
 def pentad_to_date(year,pentad):
-	return dayofyear_to_date(year,((pentad-1)*5)+1)
+    return dayofyear_to_date(year,((pentad-1)*5)+1)
 
+
+def pentad_to_datetime(year,pentad):
+    return dayofyear_to_datetime(year,((pentad-1)*5)+1)
 
 
 def pentad_to_daterange(year,pentad):
@@ -492,36 +486,60 @@ def pentad_to_daterange(year,pentad):
     d1 = pentad_to_date(year,pentad)
     
     if pentad == 73:
-        d2 = datetime.datetime(year+1,1,1)-datetime.timedelta(microseconds=1)
+        d2 = (datetime.datetime(year+1,1,1) - 
+              datetime.timedelta(microseconds=1))
     else:   
         d2 = d1 + datetime.timedelta(days=5,microseconds=-1)
     
     return gs.DateRange(d1,d2)
 
 
-
-def bound_month(self,i):
-        # Helper function that takes and integer representing a month {1...12}
-        # Thus an integer value of 1 represents Jan, 0:Dec, -1:Nov
-        # as well as 13:Jan, 14:Feb, and so on...
-        # and bounds rolls it over so 
-        # Returns a 2-tuple corresponding to relative year and rolled month: (yr,month)
-        # (-1,bounded_month) if i is 0 or negative
-        # (0,i)              if i is in {1:12}
-        # (1,bounded_month)  if i is positive
+def bound_month(i):
+    # Helper function that takes and integer representing a month
+    #{1...12}
+    # Thus an integer value of 1 represents Jan, 0:Dec, -1:Nov
+    # as well as 13:Jan, 14:Feb, and so on...
+    # and bounds rolls it over so 
+    # Returns a 2-tuple corresponding to relative year and rolled month:
+    # (yr,month)
+    # (-1,bounded_month) if i is 0 or negative
+    # (0,i)              if i is in {1:12}
+    # (1,bounded_month)  if i is positive
         
-        if i >= 1 and i <= 12:
-            return (0,i)
-        elif i > 12:
-            return (1,i%12)
-        else:
-            return (-1,(12-(abs(i)%12)))
+    if i >= 1 and i <= 12:
+        return (0,i)
+    elif i > 12:
+        return (1,i%12)
+    else:
+        return (-1,(12-(abs(i)%12)))
 
+
+def bound_cyclic(i,period): # Assume 1:period labels
+    if i >= 1 and i <= period:
+        return(0,i)
+    elif i > period:
+        return(int(i/period),i%period) 
+    elif i < period:
+        return (int((i-period)/period),period-(abs(i)%period))
+
+
+def bound_hour(hr):
+    return bound_cyclic(hr,24)
+
+
+def bound_month(m):
+    return bound_cyclic(m,12)
+
+
+def bound_pentad(pentad):
+    return bound_cyclic(pentad,73)
 
 
 def month_to_daterange(year,month):
     # Construct a daterange object
     d1 = datetime.datetime(year,month,1)
     dy,month = bound_month(year,month+1)
-    d2 = datetime.datetime(year+dy,month,1) - datetime.timedelta(microseconds=1)
+    d2 = (datetime.datetime(year+dy,month,1) - 
+          datetime.timedelta(microseconds=1))
+
     return gs.DateRange(d1,d2)
