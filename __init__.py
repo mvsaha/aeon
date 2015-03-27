@@ -52,8 +52,10 @@ class DateRange:
             
             if self._validate(date2):
                 self._end = date2
+
             elif isinstance(date2,datetime.timedelta):
                 self._end = self._start + date2
+
             else:
                 raise TypeError('date2 must be None, '+str(type(self._start))+
                     'or datetime.timedelta, not '+str(type(date2)))
@@ -68,10 +70,23 @@ class DateRange:
         # Remember the type of date that we are storing
         if self._start is not None:
             self._dateclass = type(self._start)
+
         elif self._end is not None:
             self._dateclass = type(self._end)
+
         else:
             self._dateclass = None
+
+        if self._dateclass is not None:
+
+            if self._dateclass is datetime.date:
+                self._resolution = datetime.timedelta(days=1)
+
+            elif self._dateclass is datetime.datetime:
+                self._resolution = datetime.timedelta(microseconds=1)
+
+            else:
+                raise TypeError()
 
 
     def _validate(self,d):
@@ -299,11 +314,17 @@ class DateRange:
             return  'DateRange(Ending on '+str(self._end)+')'
         else:
             return 'DateRange(All Dates)'
-
     
     def __repr__(self):
         return self.__str__()
     
+    def startat(self,d):
+        d = self._cast(d)
+        return DateRange(d,self.end())
+
+    def endat(self,d):
+        d = self._cast(d)
+        return DateRange(self.start(),d)
 
     def _cast(self,d):
         # DESCRIPTION:
@@ -328,10 +349,10 @@ class DateRange:
             try:
                 d = d.date()
                 if not self._validate(d):
-                    raise TypeError('Cannot cast from '+type(d)+' to '+
+                    raise TypeError('Cannot cast from '+str(type(d))+' to '+
                         self._dateclass)
             except:
-                raise TypeError('Cannot cast from '+type(d)+' to '+
+                raise TypeError('Cannot cast from '+str(type(d))+' to '+
                     self._dateclass)
 
     def hours(self,reverse=False):
@@ -399,12 +420,6 @@ class DateRange:
             d = d1
             p_offset = datetime.timedelta(0)
 
-        print('p  ',p)
-        print('d',d)
-        print('p1 ',p1)
-        print('d1 ',d1)
-        print('offset',p_offset)
-
         if snap is not True:
             d = d1
 
@@ -421,9 +436,87 @@ class DateRange:
             else:
                 d = self._cast(pentad_to_datetime(d.year+dy,p)) + p_offset
 
+    def rpentads(self,reverse=False,snap=False,full=False):
+        # DESCRIPTION:
+        #    Generator for a range 
+        #
+        # PARAMS:
+        #    reverse: bool
+        #       If set to True then we will generate DateRanges in reverse
+        #       chronological order
+        #    
+        #    snap: bool
+        #       If set to True then DateRanges will be snapped to logical
+        #       calendar breaks.
+        #   
+        #    full: bool
+        #       If set to True then DateRanges will only be returned if they
+        #       represent a full calendar pentad.
+        #
+        # RETURNS:
+        #    a DateRange representing a pentad
+        #
+        # RAISES:
+        #    StopIteration: once we have cycled throughall possible DateRanges
 
-    def rpentads(self,reverse=False):
-        pass
+        gen = self.pentads(reverse=reverse,snap=snap)
+
+        if reverse is True:
+            resolution_modifier = self._resolution
+
+        elif reverse is False:
+            resolution_modifier = -self._resolution
+
+        else:
+            raise ValueError('reverse must be True or False')
+
+        if snap is True:
+
+            if full is True: # pentads knows where to go
+                # if pentads is a full, then go to the first full pentad
+                # as a start
+
+                start = next(gen)
+                end = next(gen)
+
+            else: # full is False
+                if reverse is True:
+                    start = self.end()
+                    end = next(gen)
+
+                else: # reverse if False
+                    start = self.start()
+                    end = next(gen)
+
+
+        elif snap is False:
+            # snapping to calendar dates not engaged...
+            
+
+
+        else:
+            raise TypeError('snap must be True or False.')
+
+        while end is in :
+
+            yield DateRange(start,end)
+
+
+            if end not in self:
+                if full is True:
+                    raise StopIteration
+                else:
+                    pass
+                    #return DateRange(start,self._endOR_start->basedOnReverse)
+
+        #after while is broken, check for full
+        # if full is False:
+        #     return (remaining chunk)
+
+
+
+
+
 
     
     def months(self,reverse=False):
