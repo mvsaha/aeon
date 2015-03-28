@@ -122,8 +122,11 @@ class DateRange:
         #    TypeError: if trying to convert from datetime to date (resulting
         #               in a loss of resolution).
         
-        if self._dateclass is None or type(d) is self._dateclass:
+        if ( d is None or 
+             self._dateclass is None or
+             type(d) is self._dateclass ):
             return d
+
         else:
             try:
                 d = d.date()
@@ -160,15 +163,20 @@ class DateRange:
                     self._nobounds = True
             
             elif isinstance(setdate,type(self.end())):
-                if setdate > self._end:
+                if setdate > self.end():
                     raise ValueError('Cannot set start to be before end: '+
                         str(setdate))
 
                 self._start = setdate
 
+            elif self.end() is None and isinstance(setdate,type(self.start())):
+            	self._start = setdate
+
             else:
                 raise TypeError('Can only set start to None or '+
                     str(type(self._end))+', not '+str(type(setdate)))
+
+            return self
 
         else:
             return self._start
@@ -188,10 +196,9 @@ class DateRange:
         #    TypeError: if setdate does not match type(start)
         #    ValueError: if setdate < start
 
-        
-
         if setdate is not False:
             setdate = self._cast(setdate)
+
             if setdate is None:
                 self._end = None
 
@@ -199,15 +206,21 @@ class DateRange:
                     self._nobounds = True
             
             elif isinstance(setdate,type(self.start())):
-                if setdate > self._end:
+                if setdate < self.start():
                     raise ValueError('Cannot set start to be before end: '+
                         str(setdate))
 
-                self._start = setdate
-            
+                self._end = setdate
+
+            elif ( self.start() is None and
+                   isinstance(setdate,type(self.end())) ):
+            	self._end = setdate
+
             else:
                 raise TypeError('Can only set start to None or '+
-                    str(type(self._end))+', not '+str(type(setdate)))
+                    str(type(self._start))+', not '+str(type(setdate)))
+
+            return self
 
         else:
             return self._end
@@ -317,9 +330,10 @@ class DateRange:
         # RAISES:
         #    Nothing
 
-        if self.end() is not None or self.start() is not None:
+        if self.end() is not None and self.start() is not None:
             return (self.end() - self.start()) + self._resolution
-
+        else:
+        	return None
 
     def __lt__(self,date):
         return date > self.end()
@@ -351,9 +365,6 @@ class DateRange:
         return self.__str__()
     
     def startat(self,d):
-        #
-        #
-        #
         d = self._cast(d)
         return DateRange(d,self.end())
 
@@ -733,15 +744,6 @@ def dayofyear_to_date(year,doy):
 
 def dayofyear_to_datetime(year,doy):
     return datetime.datetime(year,1,1)+datetime.timedelta(days=doy-1)
-
-
-def days_in_month(y,m):
-    m += 1
-    if m >= 13:
-        m = m - 12
-        y += 1
-
-    return (datetime.date()-datetime.timedelta(days=1)).days
 
 
 def date_to_pentad(d):
