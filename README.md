@@ -44,6 +44,19 @@ DateRange(Beginning on 2006-01-01 00:00:00)
 True
 ```
 
+The bounds can be queried or changed with the ```start()``` and ```end()``` getter/setter methods. Calling this with no arguments retrieves the current bounds:
+```python
+>>> dr
+DateRange(Beginning on 2006-01-01 00:00:00)
+>>> dr.start() # Get the chronologically earliest bound.
+datetime.datetime(2006, 1, 1, 0, 0)
+>>> dr.end() # Get the last bound (None)
+>>> dr.end(datetime(2012,1,1)) # Set the chronologically latest bound.
+>>> dr
+DateRange(2006-01-01 00:00:00 to 2012-01-01 00:00:00)
 
+
+
+```
 
 
