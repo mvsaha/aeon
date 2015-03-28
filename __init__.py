@@ -149,19 +149,21 @@ class DateRange:
         # RAISES:
         #    TypeError: if setdate does not match type(end)
         #    ValueError: if setdate > end
-
+        
         if setdate is not False:
-            if setdate is None or self._end is None:
+            setdate = self._cast(setdate)
+
+            if setdate is None:
                 self._start = None
 
-                if self._end is None:
+                if self.end() is None:
                     self._nobounds = True
-
-            elif isinstance(setdate,type(self._end)):
+            
+            elif isinstance(setdate,type(self.end())):
                 if setdate > self._end:
                     raise ValueError('Cannot set start to be before end: '+
                         str(setdate))
-                
+
                 self._start = setdate
 
             else:
@@ -186,17 +188,23 @@ class DateRange:
         #    TypeError: if setdate does not match type(start)
         #    ValueError: if setdate < start
 
+        
+
         if setdate is not False:
+            setdate = self._cast(setdate)
             if setdate is None:
                 self._end = None
 
-            elif isinstance(setdate,type(self._start)):
-                if setdate < self._start:
+                if self.start() is None:
+                    self._nobounds = True
+            
+            elif isinstance(setdate,type(self.start())):
+                if setdate > self._end:
                     raise ValueError('Cannot set start to be before end: '+
                         str(setdate))
-                
-                self._end = setdate
 
+                self._start = setdate
+            
             else:
                 raise TypeError('Can only set start to None or '+
                     str(type(self._end))+', not '+str(type(setdate)))
