@@ -15,7 +15,7 @@ DateRange(1999-01-01 to 2009-03-06)
 ```python
 >>> dr = eon.DateRange( datetime(1997,8,4), datetime(1997,8,29,2,14) )
 >>> dr
-DateRange(1991-07-03 00:00:00 to 1997-08-09 08:53:00)
+DateRange(1997-08-04 00:00:00 to 1997-08-29 02:14:00)
 ```
 
 We can check if a ```date``` is inside this ```DateRange```:
