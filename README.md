@@ -28,11 +28,11 @@ False
 
 Bounds are _always_ _inclusive_:
 ```python
->>> dr = eon.DateRange(datetime(2006,1,1),datetime(2008,1,1))
->>> datetime(2006,1,1) in dr
+>>> dr = eon.DateRange(datetime(2006,5,4,3,2,1),datetime(2008,1,1))
+>>> datetime(2006,5,4,3,2,1) in dr
 True
->>> datetime(2008,1,1) in dr
-True
+>>> datetime(2006,5,4,3,2) in dr
+False
 ```
 
 Infinite times can be represented by constructing with ```None```:
@@ -68,13 +68,17 @@ None
 
 Both ```start()``` and ```end()``` return ```self```, so logic can be chained:
 ```python
-dr.end(datetime(2022,5,12)).span() # Modify the bound, then get the updated span
+>>> dr.end(datetime(2022,5,12)).span() # Modify the bound, then get the updated span
+datetime.timedelta(28188, 0, 1)
 ```
 
 ```startat()``` and ```endat()``` will create new DateRanges with modified bounds, leaving the original unchanged.
 ```python
->>> dr
->>> dr2 = dr.endat()
+>>> dr = eon.DateRange(datetime(1000,1,1),datetime(2000,1,1))
+>>> dr2 = dr.endat(datetime(3000,1,1))
 >>> dr2
+DateRange(1000-01-01 00:00:00 to 3000-01-01 00:00:00)
+>>> dr # Unmodified
+DateRange(1000-01-01 00:00:00 to 2000-01-01 00:00:00)
 ```
 
