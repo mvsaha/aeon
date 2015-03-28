@@ -1,4 +1,4 @@
-# aeon
+# eon
 # A python module for working with dates and date ranges
 
 __author__ = "Michael Vijay Saha"
@@ -6,19 +6,18 @@ __author__ = "Michael Vijay Saha"
 import datetime
 
 class DateRange:
-    #    A class for specifying a line segment (or ray, or line) on the arrow
-    #    of time.
+    #A line segment (or ray, or line) on the arrow of time.
 
     def __init__(self,date1,date2=None):
         # DESCRIPTION:
         #    Build a DateRange object
         #
         # PARAMS:
-        #    date1: datetime.date(time) | None | DateRange
+        #    date1: datetime.date[time] | None | DateRange
         #       One time bound (not necesarily the first one chronologically)
         #       or a DateRange object (in which case date2 is not needed).
         #
-        #    [date2]=None: datetime.date(time) | None | datetime.timedelta
+        #    [date2]=None: datetime.date[time] | None | datetime.timedelta
         #       Another time bound or a time period.
         #
         # NOTES:
@@ -29,7 +28,7 @@ class DateRange:
         #
         # RAISES:
         #    TypeError: if date1 or date2 is not of an approprite type.
-        #    ValueError: if date2 is specified when the input (date1) is a
+        #    ValueError: if date2 is specified when the input date1 is a
         #       DateRange.
         
         self._start = None # Set these so that we can use validate()
@@ -90,7 +89,10 @@ class DateRange:
 
 
     def _validate(self,d):
-        # Returns true if d matches type({start,end}) or is None.
+        # DESCRIPTION:
+        # 
+        # RAISES: Nothing
+
         if d is None:
             return True
 
@@ -103,15 +105,46 @@ class DateRange:
             return isinstance(d,type(self._start))
 
 
+    def _cast(self,d):
+        # DESCRIPTION:
+        #    Cast a datetime.datetime object into a type that matches
+        #    start or end.
+        #
+        # PARAMS:
+        #    d: datetime.datetime
+        #
+        # RETURNS:
+        #    date if start or end are dates and datetime if start or end are
+        #    datetimes. If both start and end are None (unbounded), then
+        #    returns d unchanged.
+        # 
+        # RAISES:
+        #    TypeError: if trying to convert from datetime to date (resulting
+        #               in a loss of resolution).
+        
+        if self._dateclass is None or type(d) is self._dateclass:
+            return d
+        else:
+            try:
+                d = d.date()
+                if not self._validate(d):
+                    raise TypeError('Cannot cast from '+str(type(d))+' to '+
+                        str(self._dateclass))
+                return d
+
+            except:
+                raise TypeError('Cannot cast from '+str(type(d))+' to '+
+                    str(self._dateclass))
+
     def start(self,setdate=False):
         # DESCRIPTION:
         #    Get or set the earliest bound for DateRange
         #    
         # PARAMS:
-        #    [setdate]: datetime.date(time) | None 
+        #    [setdate]: datetime.date[time] | None 
         #
         # RETURNS:
-        #    [datetime.date(time)] if set is not specified (getter mode)
+        #    [datetime.date[time]] if set is not specified (getter mode)
         #
         # RAISES:
         #    TypeError: if setdate does not match type(end)
@@ -144,10 +177,10 @@ class DateRange:
         #    Get or set the latest bound for DateRange
         #    
         # PARAMS:
-        #    [setdate]: datetime.date(time) | other  
+        #    [setdate]: datetime.date[time] | other  
         #
         # RETURNS:
-        #    [datetime.date(time)] if setdate is not specified (getter mode)
+        #    [datetime.date[time]] if setdate is not specified (getter mode)
         #
         # RAISES:
         #    TypeError: if setdate does not match type(start)
@@ -177,7 +210,7 @@ class DateRange:
         #    Check if a value is inside this DateRange.
         #
         # PARAMS:
-        #    d: datetime.date(time)
+        #    d: datetime.date[time]
         #
         # RETURNS:
         #    bool
@@ -207,7 +240,7 @@ class DateRange:
         #    Check if a value is inside this DateRange.
         #
         # PARAMS:
-        #    d: datetime.date(time) | other
+        #    d: datetime.date[time] | other
         #
         # RETURNS: bool
         # 
@@ -262,7 +295,7 @@ class DateRange:
 
     def span(self):
         # DESCRIPTION:
-        #    Find out the length of time between the first and second date
+        #    Find out the length of spanned by start() and end().
         #
         # PARAMS:
         #    None
@@ -276,16 +309,16 @@ class DateRange:
         # RAISES:
         #    Nothing
 
-        if self._end is not None or self._start is not None:
-            return self._end - self._start
+        if self.end() is not None or self.start() is not None:
+            return (self.end() - self.start()) + self._resolution
 
 
     def __lt__(self,date):
-        return date > self._end
+        return date > self.end()
 
 
     def __gt__(self,date):
-        return date < self._start
+        return date < self.start()
     
 
     def __ge__(self,date):
@@ -294,15 +327,6 @@ class DateRange:
 
     def __le__(self,date):
         return self.__lt__(date) or self.__contains__(date)
-    
-    # Probably should remove this...
-    def __getitem__(self,i):
-        if i is 0:
-            return self._start
-        elif i is 1:
-            return self._end
-        else:
-            raise Exception("Index out of bounds {0,1}.")
 
 
     def __str__(self):
@@ -319,6 +343,9 @@ class DateRange:
         return self.__str__()
     
     def startat(self,d):
+        #
+        #
+        #
         d = self._cast(d)
         return DateRange(d,self.end())
 
@@ -326,36 +353,11 @@ class DateRange:
         d = self._cast(d)
         return DateRange(self.start(),d)
 
-    def _cast(self,d):
-        # DESCRIPTION:
-        #    Cast a datetime.datetime object into a type that matches
-        #    start or end.
-        #
-        # PARAMS:
-        #    d: datetime.datetime
-        #
-        # RETURNS:
-        #    date if start or end are dates and datetime if start or end are
-        #    datetimes. If both start and end are None (unbounded), then
-        #    returns d unchanged.
-        # 
-        # RAISES:
-        #    TypeError: if trying to convert from datetime to date (resulting
-        #               in a loss of resolution).
-        
-        if self._dateclass is None or type(d) is self._dateclass:
-            return d
-        else:
-            try:
-                d = d.date()
-                if not self._validate(d):
-                    raise TypeError('Cannot cast from '+str(type(d))+' to '+
-                        self._dateclass)
-            except:
-                raise TypeError('Cannot cast from '+str(type(d))+' to '+
-                    self._dateclass)
+    #----------------------------------------------------------------
+    #|        Generators for cycles inside of the DateRange         |
+    #----------------------------------------------------------------
 
-    def hours(self,reverse=False):
+    def hours(self,snap=False,reverse=False):
         if reverse:
             if self._end is None:
                 raise Exception("Cannot start at infinity.")
@@ -374,200 +376,337 @@ class DateRange:
             d += dtime
     
 
-    def days(self,reverse=False):
+    def days(self,snap=False,reverse=False):
         if reverse:
-            if self._end is None:
+            if self.end() is None:
                 raise Exception("Cannot start at infinity.")
             dtime = datetime.timedelta(days=-1)
-            d = self._end
-            end = self._start
+            d1 = self.end()
+            end = self.start()
+
         else:
-            if self._start is None:
+            if self.start() is None:
                 raise Exception("Cannot start at infinity.")
             dtime = datetime.timedelta(days=1)
-            d = self._start
-            end = self._end
+            d1 = self.start()
+            end = self.end()
         
-        while d in self:
-            yield d
-            d += dtime
+        dsnap = self._cast(datetime.datetime(d1.year,d1.month,d1.day))
+        d_offset = d1 - dsnap
 
+        if snap is True:
+            d_offset = datetime.timedelta(0)
 
-    def pentads(self,reverse=False,snap=False):
-        if reverse:
-            if self._end is None:
-                raise ValueError('Cannot start at infinity.')
-            dpentad = -1
-            d1 = self._end
-            end = self._start
-        else:
-            if self._start is None:
-                raise ValueError('Cannot start at infinity.')
-            dpentad = 1
-            d1 = self._start
-            end = self._end
-
-        p1 = date_to_pentad(d1) # Pentad containing start date
-
-        #offset = self._cast(pentad_to_date(d.year,p)) - p1
-
-        if self._cast(pentad_to_datetime(d1.year,p1)) not in self:
-            dy,p = bound_pentad(p1+dpentad) # Go to the nearest pentad
-            d = self._cast(pentad_to_datetime(d1.year+dy,p))
-            p_offset = d1-self._cast(pentad_to_datetime(d1.year,p1))
-        else:
-            p = p1
-            d = d1
-            p_offset = datetime.timedelta(0)
-
-        if snap is not True:
-            d = d1
+            if dsnap not in self:
+                dsnap=(self._cast(datetime.datetime(d1.year,d1.month,d1.day))+
+                       dtime)
+        
+        d = dsnap + d_offset
 
         while d in self:
-            
             yield d
+            # Must break out dsnap rather than taking the containing pentad
+            # of d on each iteration, because it is possible to start this
+            # generator with a d_offset of greater than five (last pentad)
+            # of a leap year, in which case taking the pentad of a normal
+            # date plus a 6-day d_offset may lead to a missed cycle.
+            dsnap += dtime
+            d = dsnap + d_offset
 
-            p = date_to_pentad(d)
-            p += dpentad
-            dy,p = bound_pentad(p)
-
-            if snap is True:
-                d = self._cast(pentad_to_datetime(d.year+dy,p))
-            else:
-                d = self._cast(pentad_to_datetime(d.year+dy,p)) + p_offset
-
-    def rpentads(self,reverse=False,snap=False,full=False):
+    def rdays(self,snap=False,reverse=False,full=False):
         # DESCRIPTION:
-        #    Generator for a range 
+        gen = self.days(snap=snap,reverse=reverse)
+        return self.rcycle(gen,snap=snap,reverse=reverse,full=full)
+
+    def pentads(self,snap=False,reverse=False):
+        # DESCRIPTION:
+        #    Generate date(time)s representing the beginning of pentads in
+        #    this DateRange
         #
         # PARAMS:
-        #    reverse: bool
-        #       If set to True then we will generate DateRanges in reverse
-        #       chronological order
-        #    
-        #    snap: bool
-        #       If set to True then DateRanges will be snapped to logical
-        #       calendar breaks.
-        #   
-        #    full: bool
-        #       If set to True then DateRanges will only be returned if they
-        #       represent a full calendar pentad.
+        #    [snap=False]: bool
+        #       If snap is True then only 'clean' pentads in this DateRange.
         #
-        # RETURNS:
-        #    a DateRange representing a pentad
+        #    [reverse=False]: bool
+        #       If reverse is True, then date[time]s are generated in reverse
+        #       chronological order.
+        #
+        # NOTES:
+        #    A pentad is defined as a duration of time that breaks the year
+        #    into exactly 73 portions, with all but the last portion required
+        #    to have exactly 5 days. The last pentad will have 6 days only on
+        #    leap years. The date[time]s generated here denote pentads by the
+        #    first (chronologically) bound,
+        #        e.g.:  1/1, 1/6, 1/11, 1/16, 1/21, 1/31, 2/5, 2/10...
+        #    
+        #    If the starting value of the pentad, either self.start() or
+        #    self.end() if reverse if True, is not a 'clean' pentad that lands
+        #    exactly on the list above, then the values are generated as
+        #    follows:
+        #    
+        #    (1) The 'clean' pentad containing the initial date[time], start()
+        #    (or end() if reverse if True), is found and the offset between
+        #    these two dates if found. 
+        #    (2) To generate subsequent values, the next 'clean' pentad is
+        #    found and the offset calculated in step (1) is applied to it
+        #
+        #    If DateRange is based on datetime.date objects, then the offset
+        #    and pentads generated will be dates. If the DateRange.
+        #    the type of
+        #    
+        #
+        #    To force this generator to yield only 'clean' pentad values in
+        #    the parent DateRange, set snap to True.
         #
         # RAISES:
+        #    ValueError(): if self.start() is None and reverse is False
+        #    ValueError(): if self.end() is None and reverse is True
+
+        if reverse:
+            if self.end() is None:
+                raise ValueError('Cannot start at infinity.')
+            dpentad = -1
+            d1 = self.end()
+        else:
+            if self.start() is None:
+                raise ValueError('Cannot start at infinity.')
+            dpentad = 1
+            d1 = self.start()
+
+        p = date_to_pentad(d1) # Pentad containing start datetime
+
+        dsnap = self._cast(pentad_to_datetime(d1.year,p))
+        
+        d_offset = d1 - dsnap # 0 in the case that d1 is a calendar pentad
+
+        if snap is True:
+            d_offset = datetime.timedelta(0)
+
+            if dsnap not in self:
+                dy,p = bound_pentad(p+dpentad)
+                dsnap = self._cast( pentad_to_datetime(dsnap.year+dy,p) )
+
+        d = dsnap + d_offset
+
+        while d in self:
+            yield d
+            # Must break out dsnap rather than taking the containing pentad
+            # of d on each iteration, because it is possible to start this
+            # generator with a d_offset of greater than five (last pentad)
+            # of a leap year, in which case taking the pentad of a normal
+            # date plus a 6-day d_offset may lead to a missed cycle.
+            dy,p = bound_pentad( date_to_pentad(dsnap) + dpentad )
+            dsnap = self._cast( pentad_to_datetime(dsnap.year+dy,p) )
+            d = dsnap + d_offset
+
+
+    def rpentads(self,snap=False,reverse=False,full=False):
+        # DESCRIPTION:
+        #    Generate DateRanges within from this DateRange one pentad in
+        #    duration in chronological order.
+        #
+        # PARAMS:
+        #    [snap=False]: bool
+        #       If set to True then DateRanges will be snapped to logical
+        #       calendar breaks.
+        #
+        #    [reverse=False]: bool
+        #       If set to True then we will generate DateRanges in reverse
+        #       chronological order
+        #
+        #    [full=False]: bool
+        #       If set to True then partial DateRanges on either side will
+        #       be skipped.
+        #
+        # RETURNS:
+        #    generator that yields DateRanges that cover exactly a pentad.
+        #    A pentad is defined
+        #
+        # NOTES: The DateRanges generated are guaranteed to be non-overlapping
+        #        and exhaustive within the specified period. Possible
+        #        exceptions to this rule arise on either end if full is True.
+        #
+        # RAISES:
+        #    ValueError: if we try starting the generator at an unbounded date
         #    StopIteration: once we have cycled throughall possible DateRanges
 
         gen = self.pentads(reverse=reverse,snap=snap)
+        return self.rcycle(gen,reverse=reverse,snap=snap,full=full)
+    
+
+    
+    def months(self,snap=False,reverse=False):
+        
+        if reverse:
+            if self.end() is None:
+                raise ValueError("Cannot start at infinity.")
+            dmonth = -1
+            d = self.end()
+
+        else:
+            if self.start() is None:
+                raise ValueError("Cannot start at infinity.")
+            dmonth = 1
+            d = self.start()
+
+        # First of the month
+        m = d.month
+        dsnap = self._cast(datetime.datetime(d.year,d.month,1))
+        d_offset = d - dsnap # 0 in the case that d1 is a calendar pentad
+        
+        if snap is True:
+            d_offset = datetime.timedelta(0)
+
+            if dsnap not in self:
+                dy,m = bound_month(m+dmonth)
+                dsnap = self._cast(datetime.datetime(dsnap.year+dy,m,1))
+
+        d = dsnap + d_offset
+
+        while d in self:
+            yield d
+            # Must break out dsnap rather than taking the containing pentad
+            # of d on each iteration, because it is possible to start this
+            # generator with a d_offset of greater than five (last pentad)
+            # of a leap year, in which case taking the pentad of a normal
+            # date plus a 6-day d_offset may lead to a missed cycle.
+            dy,m = bound_month(d.month+dmonth)
+            dsnap = self._cast(datetime.datetime(d.year+dy,m,1))
+            d = dsnap + d_offset
+    
+    def rmonths(self,snap=False,reverse=False,full=False):
+        gen = self.months(snap=snap,reverse=reverse)
+        return self.rcycle(gen,snap=snap,reverse=reverse,full=full)
+    
+    def years(self,reverse=False,snap=False):
+
+        if reverse:
+            if self.end() is None:
+                raise Exception("Cannot start at infinity.")
+            d = self.end()
+            interval = -1
+
+        else:
+            if self.start() is None:
+                raise Exception("Cannot start at infinity.")
+            d = self.start()
+            interval = 1
+
+        while d in self:
+
+            yield d
+
+            days_between = (datetime.date(d.year+interval,d.month,d.day)-
+                            datetime.date(d.year,d.month,d.day))
+
+            d = d + days_between
+
+
+    def rcycle(self,gen,snap=False,reverse=False,full=False):
+        # DESCRIPTION:
+        #    Generate DateRanges from using date[time] generator
+        #
+        # PARAMS:
+        #    gen: generator object
+        #       Can be a built in one like months() or pentads() or a user-
+        #       defined one. It must generate dates or datetimes if _dateclass
+        #       is datetime.date of datetimes if _dateclass is datetime.
+        #    
+        #    [snap=False]: bool
+        #    [reverse=False]: bool
+        #    [full=False]: bool
+        #
+        # RETURNS:
+        #    A generator that produces DateRanges inside of the bounds of the
+        #    parent DateRange
+        # 
+        # NOTES:
+        #    
+        
+        if not (full is False or full is True):
+            raise ValueError('full must be True or False.')
+        elif not (reverse is False or reverse is True):
+            raise ValueError('reverse must be True or False.')
+        if not (snap is False or snap is True):
+            raise ValueError('span must be True or False.')
 
         if reverse is True:
             resolution_modifier = self._resolution
+            natural_start = self.end()
+            natural_end = self.start()
 
         elif reverse is False:
             resolution_modifier = -self._resolution
+            natural_start = self.start()
+            natural_end = self.end()
+        
+        # If we can't generate a single date...
+        try: 
+            maybe_start = next(gen)
+
+        except StopIteration:
+            print('hai')
+            if full is True:
+                raise StopIteration
+            else:
+                yield DateRange(self.start(),self.end())
+                raise StopIteration
+
+        # Handle cases where we can't generate a second date
+        if full is True:
+            try:
+                start = maybe_start
+                _start = next(gen)
+            except StopIteration:
+                raise StopIteration
 
         else:
-            raise ValueError('reverse must be True or False')
+            if natural_start == maybe_start:
+                try:
+                    start = natural_start
+                    _start = next(gen)
 
-        if snap is True:
-
-            if full is True: # pentads knows where to go
-                # if pentads is a full, then go to the first full pentad
-                # as a start
-
-                start = next(gen)
-                end = next(gen)
-
-            else: # full is False
-                if reverse is True:
-                    start = self.end()
-                    end = next(gen)
-
-                else: # reverse if False
-                    start = self.start()
-                    end = next(gen)
-
-
-        elif snap is False:
-            # snapping to calendar dates not engaged...
-            
-
-
-        else:
-            raise TypeError('snap must be True or False.')
-
-        while end is in :
-
-            yield DateRange(start,end)
-
-
-            if end not in self:
-                if full is True:
+                except StopIteration:
+                    yield DateRange(start,natural_end)
                     raise StopIteration
-                else:
-                    pass
-                    #return DateRange(start,self._endOR_start->basedOnReverse)
+            else:
+                start = natural_start
+                _start = maybe_start
 
-        #after while is broken, check for full
-        # if full is False:
-        #     return (remaining chunk)
+        end = _start + resolution_modifier
 
+        # Bound the end in the case that we go over
+        if end not in self:
+            if full is False:
+                yield DateRange(natural_start,natural_end)
+            else:
+                raise StopIteration
 
+        # The big loop
+        try:
+            while end in self:
 
+                yield DateRange(start,end)
 
-
-
-    
-    def months(self,reverse=False):
+                start = _start
+                _start = next(gen)
+                end = _start + resolution_modifier
         
-        if reverse:
-            if self._end is None:
-                raise ValueError("Cannot start at infinity.")
-            dmonth = -1
-            d = self._end
-            end = self._start
-        else:
-            if self._start is None:
-                raise ValueError("Cannot start at infinity.")
-            dmonth = 1
-            d = self._start
-            end = self._end
-        
-        m = d.month
-        
-        while d in self:
-            yield d
-            
-            m += dmonth
-            (dy,m) = bound_month(m)
-            
-            d = datetime.datetime(d.year+dy,m,d.day,d.hour,
-                d.minute,d.second,d.microsecond)
-    
-    
-    def years(self,reverse=False,snap=True):
-        if reverse:
-            if self._end is None:
-                raise Exception("Cannot start at infinity.")
-            d = self._end
-            interval = 1
-        else:
-            if self._start is None:
-                raise Exception("Cannot start at infinity.")
-            d = self._start
-            interval = -1
+        except StopIteration:
+            # Handles the case where the last iterations' start is equal
+            # to the stopping criterion (self._start if reverse or
+            # self._end if not) At this point, end is NOT in the range, so we
+            # know that this DateRange is not 'full'
 
-        while d <= self._end:
-            yield d
-            y = d.year + 1
-            d = datetime.datetime(y,d.month,d.day,d.hour,
-                d.minute,d.second,d.microsecond)
+            if full is False and start in self:
+                # Start must be in self to prevent the edge case where the 
+                # last iteration ended perfectly on a bound, in which case we
+                # do not want to yield any more values
+                if reverse is True :
+                    yield DateRange(start,self.start())
 
-
-    def cycle(self,reverse=False):
-        pass
-
+                else: # reverse is False
+                    yield DateRange(self.end(),start)
 
 
 
