@@ -44,7 +44,14 @@ DateRange(Beginning on 2006-01-01 00:00:00)
 True
 ```
 
-The bounds can be queried or changed with the ```start()``` and ```end()``` getter/setter methods. Calling this with no arguments retrieves the current bounds:
+Call ```span()``` to retrieve the length of time spanned by the two dates in the form of a ```timedelta```:
+```python
+>>> print( dr.span() )
+3287 days, 0:00:00.000001
+>>> print( dr.end(None).span()) # dr.end
+```
+
+Individual bounds can be queried or changed with the ```start()``` and ```end()``` getter/setter methods. Calling this with no arguments retrieves the current bounds:
 ```python
 >>> dr
 DateRange(Beginning on 2006-01-01 00:00:00)
@@ -52,11 +59,14 @@ DateRange(Beginning on 2006-01-01 00:00:00)
 datetime.datetime(2006, 1, 1, 0, 0)
 >>> dr.end() # Get the last bound (None)
 >>> dr.end(datetime(2012,1,1)) # Set the chronologically latest bound.
+DateRange(2006-01-01 00:00:00 to 2014-01-01 00:00:00)
 >>> dr
 DateRange(2006-01-01 00:00:00 to 2012-01-01 00:00:00)
+```
 
-
-
+Both ```start()``` and ```end()``` return ```self```, so logic can be chained:
+```python
+dr.end(datetime(2022,5,12)).span() # Modify the bound, then get the updated span
 ```
 
 
