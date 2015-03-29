@@ -9,8 +9,7 @@ config = {
     'download_url': 'https://github.com/mvsaha/eon',
     'author_email': 'https://github.com/mvsaha/eon',
     'version': '0.1.0',
-    'install_requires': [],
-    'packages': [],
+    'packages': ['eon'],
     'name': 'eon'
 }
 
