@@ -1,5 +1,7 @@
 # eon
 # A python module for working with dates and date ranges
+import sys
+sys.dont_write_bytecode = True
 
 __author__ = "Michael Vijay Saha"
 
