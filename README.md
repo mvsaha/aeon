@@ -91,10 +91,20 @@ DateRange(1000-01-01 00:00:00 to 2000-01-01 00:00:00)
 ### Cycles
 Periodic timestamps can be retrieved from a ```DateRange``` by calling a generator for common durations:
 
+Generic cycles are defined using only a ```timedelta```. If the ```timedelta``` is negative then we start at ```end``` instead of ```start```.
+```python
+>>> DateRange( datetime(2012,1,1), datetime(2012,2,1) ).cycles(timedelta(days=11))
+<generator object days at 0x000XXXX>
+>>> [d for dr in DateRange( datetime(2012,1,1), datetime(2012,2,1) ).days()]
+[datetime.datetime(2012, 1, 1, 0, 0),
+datetime.datetime(2012, 1, 12, 0, 0),
+datetime.datetime(2012, 1, 23, 0, 0)]
+```
+
+Other common time periods are specially defined:
 Days:
 ```python
->>> DateRange( datetime(2012,1,1), datetime(2012,2,1) ).days()
-<generator object days at 0x000XXXX>
+>>> 
 >>> for d in DateRange( datetime(2012,1,1), datetime(2012,2,1) ).days():
 ...    print(d)
 datetime(2012,1,1)
@@ -129,10 +139,35 @@ datetime(2012,1,1)
 However, we often won't have nice, clean bounds on our ```DateRange```. _Ex_:
 ```python
 >>> dr = DateRange( datetime(2012,1,3,hour=2,minute=1,second=4),
-                    datetime(2012,4,7,hour=19))
+                    datetime(2012,1,7,hour=19))
 >>> dr
-DateRange(2012-01-03 02:01:04 to 2012-04-07 19:00:00)
+DateRange(2012-01-03 02:01:04 to 2012-01-07 19:00:00)
 ```
 
-In this case of a generic cycle, _C_<sub>{1...2}</sub>, we use the following algorithm to generate ```date```(```time```)s:
-    (1) Find the cycle _C_<sub>i</sub> that contains ```start()``` (or ```end()``` if ```reverse=True```)
+But if we cycle through the ```days()```, we get something that is (perhaps) unexpected:
+```python
+>>> [d for d in dr.days()]
+[datetime.datetime(2012, 1, 3, 2, 1, 4),
+datetime.datetime(2012, 1, 4, 2, 1, 4),
+datetime.datetime(2012, 1, 5, 2, 1, 4),
+datetime.datetime(2012, 1, 6, 2, 1, 4),
+datetime.datetime(2012, 1, 7, 2, 1, 4)]
+```
+
+In the case of a ```DateRange``` containing generic cycles, _C_, ```date```(```time```)s are generated using the following algorithm:
+
+1. Find the cycle _C_<sub>i</sub> that contains ```start``` (or ```end``` if ```reverse=True```)
+2. Find the offset, _O_, between ```start``` (or ```end``` if ```reverse=True```) and the beginning of cycle _C_<sub>i</sub>
+3. While _C_<sub>i</sub>+_O_ is in the ```DateRange```, return _C_+_O_. Then increment (or decrement) i.
+ 
+Here we see that for each cycle _C_<sub>i</sub> there must be a well defined cycle 'beginning'. In the case of _C_ = {days}, each day obviously begins at midnight. Same idea for months (the first day of the month at midnight), years (Jan 1st), etc. But it may not be _as_ intuitive for arbitrary cycles. Even in the case of _C_ = {weeks), different days may be traditionally and practically defined as the ['first' day of the week](http://en.wikipedia.org/wiki/Monday).
+
+But because not all cycles have well defined beginnings (i.e. they exist as free vectors rather than bound vectors on the Arrow of Time), the default behavior is to use the ```start``` (or ```end```) as starting point C<sub>i</sub> and set the offset _O_ to 0.
+
+Back to the last example. If we generate values in ```reverse```, then the offset _O_ is generated from ```end```. In this case it is 19 hours. To reiterate the above example. _C_<sub>i</sub> starts off as the day containing 
+
+
+
+For built in cycle generators that _do_ have 'well defined' beginnings we can call the cycle with ```snap=True``` to get 'clean' values from inside of our ```DateRange```:
+
+
