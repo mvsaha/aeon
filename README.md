@@ -1,6 +1,7 @@
 # eon
 ***Line segments (or rays, or lines) on the arrow of time***
 
+Written in pure python. Depends only on the built-in _datetime_ package.
 
 ### Introduction
 This module defines the ```DateRange``` class, which wraps two dates to represent a duration of time. ```DateRanges``` can be constructed with two ```dates```:
@@ -89,16 +90,26 @@ DateRange(1000-01-01 00:00:00 to 2000-01-01 00:00:00)
 ```
 
 ### Cycles
-Periodic timestamps can be retrieved from a ```DateRange``` by calling a generator for common durations:
+Periodic timestamps can be retrieved from a ```DateRange``` by calling generators.
 
-Generic cycles are defined using only a ```timedelta```. If the ```timedelta``` is negative then we start at ```end``` instead of ```start```.
+Generic cycles are defined using only a ```timedelta```: 
 ```python
 >>> DateRange( datetime(2012,1,1), datetime(2012,2,1) ).cycles(timedelta(days=11))
 <generator object days at 0x000XXXX>
->>> [d for dr in DateRange( datetime(2012,1,1), datetime(2012,2,1) ).days()]
+>>> [d for dr in DateRange( datetime(2012,1,1),
+                            datetime(2012,2,1) ).cycles(timedelta(days=11))]
 [datetime.datetime(2012, 1, 1, 0, 0),
 datetime.datetime(2012, 1, 12, 0, 0),
 datetime.datetime(2012, 1, 23, 0, 0)]
+```
+
+If the ```timedelta``` is negative then we start at ```end``` instead of ```start```.
+```python
+>>> [d for dr in DateRange( datetime(2012,1,1),
+                            datetime(2012,2,1) ).cycles(timedelta(days=-11))]
+[datetime.datetime(2012, 2, 1, 0, 0),
+datetime.datetime(2012, 1, 21, 0, 0),
+datetime.datetime(2012, 1, 10, 0, 0)]
 ```
 
 Other common time periods are specially defined:
@@ -119,6 +130,7 @@ Months:
 >>> [d for d in DateRange( datetime(2012,1,1), datetime(2012,2,1) ).months()]
 [datetime(2012,1,1),datetime(2012,2,1)]
 ```
+
 Years:
 ```python
 >>> [d for d in DateRange( datetime(2012,1,1), datetime(2012,2,1) ).months()]
@@ -127,7 +139,7 @@ Years:
 
 Generate them in reverse chronological order using the ```reverse=True``` named argument:
 ```python
->>> for d in DateRange( datetime(2012,1,1), datetime(2012,2,1) ).days():
+>>> for d in DateRange( datetime(2012,1,1), datetime(2012,2,1) ).days(reverse=True):
 ...    print(d)
 datetime(2012,2,1)
 datetime(2012,1,31)
@@ -136,7 +148,7 @@ datetime(2012,1,2)
 datetime(2012,1,1)
 ```
 
-However, we often won't have nice, clean bounds on our ```DateRange```. _Ex_:
+However, we often won't have nice, clean bounds on our ```DateRange```:
 ```python
 >>> dr = DateRange( datetime(2012,1,3,hour=2,minute=1,second=4),
                     datetime(2012,1,7,hour=19))
@@ -144,7 +156,7 @@ However, we often won't have nice, clean bounds on our ```DateRange```. _Ex_:
 DateRange(2012-01-03 02:01:04 to 2012-01-07 19:00:00)
 ```
 
-But if we cycle through the ```days()```, we get something that is (perhaps) unexpected:
+If we cycle through the ```days()```, we get something that is (perhaps) unexpected:
 ```python
 >>> [d for d in dr.days()]
 [datetime.datetime(2012, 1, 3, 2, 1, 4),
@@ -159,7 +171,8 @@ In the case of a ```DateRange``` containing generic cycles, _C_, ```date```(```t
 1. Find the cycle _C_<sub>i</sub> that contains ```start``` (or ```end``` if ```reverse=True```)
 2. Find the offset, _O_, between ```start``` (or ```end``` if ```reverse=True```) and the beginning of cycle _C_<sub>i</sub>
 3. While _C_<sub>i</sub>+_O_ is in the ```DateRange```, return _C_+_O_. Then increment (or decrement) i.
- 
+
+##### A note on Time: 
 Here we see that for each cycle _C_<sub>i</sub> there must be a well defined cycle 'beginning'. In the case of _C_ = {days}, each day obviously begins at midnight. Same idea for months (the first day of the month at midnight), years (Jan 1st), etc. But it may not be _as_ intuitive for arbitrary cycles. Even in the case of _C_ = {weeks), different days may be traditionally and practically defined as the ['first' day of the week](http://en.wikipedia.org/wiki/Monday).
 
 But because not all cycles have well defined beginnings (i.e. they exist as free vectors rather than bound vectors on the Arrow of Time), the default behavior is to use the ```start``` (or ```end```) as starting point C<sub>i</sub> and set the offset _O_ to 0.
