@@ -378,19 +378,41 @@ class DateRange:
     #|        Generators for cycles inside of the DateRange         |
     #----------------------------------------------------------------
 
+
+    def cycles(self,dt):
+        if dt > datetime.timedelta(0):
+            if self.start() is None:
+                raise ValueError("timedelta indicates starting at infinite"+
+                    "bound.")
+            d = self.start()
+
+        elif dt < datetime.timedelta(0):
+            if self.end() is None:
+                raise ValueError("timedelta indicates starting at infinite"+
+                    "bound.")
+            d = self.end()
+
+        else:
+            raise ValueError("timedelta cannot be 0.")
+
+        while d in self:
+            yield d
+            d += dt
+
+
     def hours(self,snap=False,reverse=False):
         if reverse:
-            if self._end is None:
+            if self.end() is None:
                 raise Exception("Cannot start at infinity.")
             dtime = datetime.timedelta(hours=-1)
-            d = self._end
-            end = self._start
+            d = self.end()
+            end = self.start()
         else:
-            if self._end is None:
+            if self.end() is None:
                 raise Exception("Cannot start at infinity.")
             dtime = datetime.timedelta(hours=1)
-            d = self._start
-            end = self._end
+            d = self.start()
+            end = self.end()
         
         while d in self:
             yield d
@@ -758,7 +780,7 @@ def date_to_pentad(d):
         doy = d
     else:
         doy = date_to_dayofyear(d)
-
+    
     if doy == 366:
         doy = 365
     
