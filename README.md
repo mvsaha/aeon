@@ -134,7 +134,7 @@ Months:
 Years:
 ```python
 >>> [d for d in DateRange( datetime(2012,1,1), datetime(2012,2,1) ).months()]
-[datetime(2012,1,1),datetime(2012,2,1)]
+[datetime(2012,1,1)]
 ```
 
 Generate them in reverse chronological order using the ```reverse=True``` named argument:
@@ -173,14 +173,21 @@ In the case of a ```DateRange``` containing generic cycles, _C_, ```date```(```t
 3. While _C_<sub>i</sub>+_O_ is in the ```DateRange```, return _C_+_O_. Then increment (or decrement) i.
 
 ##### A note on Time: 
-Here we see that for each cycle _C_<sub>i</sub> there must be a well defined cycle 'beginning'. In the case of _C_ = {days}, each day obviously begins at midnight. Same idea for months (the first day of the month at midnight), years (Jan 1st), etc. But it may not be _as_ intuitive for arbitrary cycles. Even in the case of _C_ = {weeks), different days may be traditionally and practically defined as the ['first' day of the week](http://en.wikipedia.org/wiki/Monday).
-
-But because not all cycles have well defined beginnings (i.e. they exist as free vectors rather than bound vectors on the Arrow of Time), the default behavior is to use the ```start``` (or ```end```) as starting point C<sub>i</sub> and set the offset _O_ to 0.
-
-Back to the last example. If we generate values in ```reverse```, then the offset _O_ is generated from ```end```. In this case it is 19 hours. To reiterate the above example. _C_<sub>i</sub> starts off as the day containing 
-
-
+Here we see that for each cycle _C_<sub>i</sub> there must be a well defined cycle 'beginning'. In the case of _C_ = {days}, each day obviously begins at midnight. Same idea for months (the first day of the month at midnight), years (Jan 1st), etc. But it may not be _as_ intuitive for arbitrary cycles. Even in the case of _C_ = {weeks), different days may be traditionally and practically defined as the ['first' day of the week](http://en.wikipedia.org/wiki/Monday). Because not all cycles have well defined beginnings (i.e. they exist as free vectors rather than bound vectors on the Arrow of Time), the default behavior is to use the ```start``` (or ```end```) as starting point C<sub>i</sub> and set the offset _O_ to 0.
 
 For built in cycle generators that _do_ have 'well defined' beginnings we can call the cycle with ```snap=True``` to get 'clean' values from inside of our ```DateRange```:
+```python
+>>> [d for d in dr.days(snap=True)]
+[datetime.datetime(2012, 1, 3),
+datetime.datetime(2012, 1, 4),
+datetime.datetime(2012, 1, 5),
+datetime.datetime(2012, 1, 6),
+datetime.datetime(2012, 1, 7)]
+```
 
+If we use ```reverse=True```...
+
+
+### Range Cycles
+We can also generate  periodic ```DateRanges``` corresponding by prepending ```r``` to cycle generators. Range generators are guaranteed to sample time fully and uniquely. In other words, any given ```date```(```time```) in a ```DateRange``` will fall into exactly one range cycle.
 
