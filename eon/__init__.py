@@ -752,13 +752,11 @@ class DateRange:
                     yield DateRange(self.end(),start)
 
 
-
 def date_to_dayofyear(d):
     # Input a datetime.datetime object and return the interger day of year
     # Return value will be in the range [1,366]
     if not isinstance(d,datetime.date) or isinstance(d,datetime.datetime):
         d = d.date()
-
     return (d - datetime.date(d.year,1,1)).days + 1
 
 
@@ -788,23 +786,31 @@ def date_to_pentad(d):
 
 
 def pentad_to_dayofyear(pentad):
+    return ((pentad-1)*5)+1
+
+
+def pentad_to_dayofyear(pentad):
     if pentad > 73 or pentad < 1:
         raise Exception("pentad out of range")
     # This function is leap invariant
     # Returns an int corresponding to the day of year
     return ((pentad-1)*5)+1
 
+
 def pentad_to_date(year,pentad):
-    return dayofyear_to_date(year,((pentad-1)*5)+1)
+    return dayofyear_to_date(year,pentad_to_dayofyear(pentad))
 
 
 def pentad_to_datetime(year,pentad):
-    return dayofyear_to_datetime(year,((pentad-1)*5)+1)
+    dy,pentad = bound_pentad(pentad)
+    return dayofyear_to_datetime(year+dy,pentad_to_dayofyear(pentad))
 
 
 def pentad_to_daterange(year,pentad):
     # For a given year and pentad, generate a DateRange
-    d1 = pentad_to_date(year,pentad)
+    dy,pentad = bound_pentad(pentad)
+    year = year + dy # Roll year
+    d1 = pentad_to_datetime(year,pentad)
     
     if pentad == 73:
         d2 = (datetime.datetime(year+1,1,1) - 
@@ -812,7 +818,7 @@ def pentad_to_daterange(year,pentad):
     else:   
         d2 = d1 + datetime.timedelta(days=5,microseconds=-1)
     
-    return gs.DateRange(d1,d2)
+    return DateRange(d1,d2)
 
 
 def bound_month(i):
@@ -863,4 +869,5 @@ def month_to_daterange(year,month):
     d2 = (datetime.datetime(year+dy,month,1) - 
           datetime.timedelta(microseconds=1))
 
-    return gs.DateRange(d1,d2)
+    return DateRange(d1,d2)
+
