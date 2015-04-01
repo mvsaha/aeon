@@ -7,6 +7,55 @@ __author__ = "Michael Vijay Saha"
 
 import datetime
 
+class DateList:
+
+    def __init__(self,dates):
+        if isinstance(dates,datetime.datetime):
+            self._dates = [dates]
+
+        elif not len(dates):
+            self._dates = []
+
+        else:
+            # Check iterability
+            for i in dates:
+                if not isinstance(i,datetime.date):
+                    raise Exception("Invalid input: 'dates' must be an iterable \
+                        collection of datetime.datetime objects")
+            self._dates = dates;
+
+    def __getitem__(self,i):
+        return self.dates[i]
+
+    def __repr__(self):
+        if len(self._dates) == 0:
+            return 'DateList(Empty DateList)'
+        else:
+            return 'DateList('+str(len(self._dates))+' dates from '+ \
+                str(self._dates[0])+' to '+str(self._dates[-1])+')'
+    
+    def __str__(self):
+        return self.__repr__()
+
+    def __iter__(self):
+        return self._dates.__iter__() # Passthrough to date list
+
+    def __len__(self):
+        return len(self._dates)
+
+    def __nonzero__(self):
+        return self.__len__()
+    
+    def __contains__(self,d):
+        if isinstance(date,datetimes.date):
+            return date in self._dates
+
+    def contains(self,date):
+        return self.__contains__(date)
+
+    def intersection(self,other):
+        return DateList([d for d in self._dates if other.contains(d)])
+
 class DateRange:
     #A line segment (or ray, or line) on the arrow of time.
 
@@ -786,10 +835,6 @@ def date_to_pentad(d):
 
 
 def pentad_to_dayofyear(pentad):
-    return ((pentad-1)*5)+1
-
-
-def pentad_to_dayofyear(pentad):
     if pentad > 73 or pentad < 1:
         raise Exception("pentad out of range")
     # This function is leap invariant
@@ -865,7 +910,9 @@ def bound_pentad(pentad):
 def month_to_daterange(year,month):
     # Construct a daterange object
     d1 = datetime.datetime(year,month,1)
-    dy,month = bound_month(year,month+1)
+
+    dy,month = bound_month(month+1)
+
     d2 = (datetime.datetime(year+dy,month,1) - 
           datetime.timedelta(microseconds=1))
 
