@@ -674,25 +674,42 @@ class DateRange:
 
         if reverse:
             if self.end() is None:
-                raise Exception("Cannot start at infinity.")
+                raise ValueError("Cannot start at infinity.")
+            dyear = -1
             d = self.end()
-            interval = -1
 
         else:
             if self.start() is None:
-                raise Exception("Cannot start at infinity.")
+                raise ValueError("Cannot start at infinity.")
+            dyear = 1
             d = self.start()
-            interval = 1
+
+        # First of the month
+        y = d.year
+        dsnap = self._cast(datetime.datetime(d.year,1,1))
+        d_offset = d - dsnap # 0 in the case that d1 is a calendar pentad
+        
+        if snap is True:
+            d_offset = datetime.timedelta(0)
+
+            if dsnap not in self:
+                dsnap = self._cast(datetime.datetime(dsnap.year+dyear,1,1))
+
+        d = dsnap + d_offset
 
         while d in self:
-
             yield d
+            # Must break out dsnap rather than taking the containing pentad
+            # of d on each iteration, because it is possible to start this
+            # generator with a d_offset of greater than five (last pentad)
+            # of a leap year, in which case taking the pentad of a normal
+            # date plus a 6-day d_offset may lead to a missed cycle.
+            dsnap = self._cast(datetime.datetime(d.year+dyear,1,1))
+            d = dsnap + d_offset
 
-            days_between = (datetime.date(d.year+interval,d.month,d.day)-
-                            datetime.date(d.year,d.month,d.day))
-
-            d = d + days_between
-
+    def ryears(self,snap=False,reverse=False,full=False):
+        gen = self.years(snap=snap,reverse=reverse)
+        return self.rcycle(gen,snap=snap,reverse=reverse,full=full)
 
     def rcycle(self,gen,snap=False,reverse=False,full=False):
         # DESCRIPTION:
