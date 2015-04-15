@@ -684,18 +684,14 @@ class DateRange:
             dyear = 1
             d = self.start()
 
-        # First of the month
-        y = d.year
-        dsnap = self._cast(datetime.datetime(d.year,1,1))
-        d_offset = d - dsnap # 0 in the case that d1 is a calendar pentad
-        
         if snap is True:
-            d_offset = datetime.timedelta(0)
+            d = self._cast(datetime.datetime(d.year,1,1)) 
+            if not d in self:
+                d = self._cast(datetime.datetime(d.year+dyear,1,1))
 
-            if dsnap not in self:
-                dsnap = self._cast(datetime.datetime(dsnap.year+dyear,1,1))
-
-        d = dsnap + d_offset
+        else: # snap is false, we can start at d
+            month,day = d.month,d.day
+            d_offset = d - self._cast(datetime.datetime(d.year,month,day))
 
         while d in self:
             yield d
@@ -704,8 +700,11 @@ class DateRange:
             # generator with a d_offset of greater than five (last pentad)
             # of a leap year, in which case taking the pentad of a normal
             # date plus a 6-day d_offset may lead to a missed cycle.
-            dsnap = self._cast(datetime.datetime(d.year+dyear,1,1))
-            d = dsnap + d_offset
+            if snap is True:
+                d = self._cast(datetime.datetime(d.year+dyear,1,1))
+            else:
+                d = self._cast(datetime.datetime(d.year+dyear,month,day)+
+                               d_offset)
 
     def ryears(self,snap=False,reverse=False,full=False):
         gen = self.years(snap=snap,reverse=reverse)
