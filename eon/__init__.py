@@ -595,7 +595,7 @@ class DateRange:
     def rpentads(self,snap=False,reverse=False,full=False):
         # DESCRIPTION:
         #    Generate DateRanges within from this DateRange one pentad in
-        #    duration in chronological order.
+        #    duration and in chronological order.
         #
         # PARAMS:
         #    [snap=False]: bool
@@ -695,11 +695,7 @@ class DateRange:
 
         while d in self:
             yield d
-            # Must break out dsnap rather than taking the containing pentad
-            # of d on each iteration, because it is possible to start this
-            # generator with a d_offset of greater than five (last pentad)
-            # of a leap year, in which case taking the pentad of a normal
-            # date plus a 6-day d_offset may lead to a missed cycle.
+
             if snap is True:
                 d = self._cast(datetime.datetime(d.year+dyear,1,1))
             else:
@@ -882,26 +878,6 @@ def pentad_to_daterange(year,pentad):
     return DateRange(d1,d2)
 
 
-def bound_month(i):
-    # Helper function that takes and integer representing a month
-    #{1...12}
-    # Thus an integer value of 1 represents Jan, 0:Dec, -1:Nov
-    # as well as 13:Jan, 14:Feb, and so on...
-    # and bounds rolls it over so 
-    # Returns a 2-tuple corresponding to relative year and rolled month:
-    # (yr,month)
-    # (-1,bounded_month) if i is 0 or negative
-    # (0,i)              if i is in {1:12}
-    # (1,bounded_month)  if i is positive
-        
-    if i >= 1 and i <= 12:
-        return (0,i)
-    elif i > 12:
-        return (1,i%12)
-    else:
-        return (-1,(12-(abs(i)%12)))
-
-
 def bound_cyclic(i,period): # Assume 1:period labels
     if i >= 1 and i <= period:
         return(0,i)
@@ -919,8 +895,12 @@ def bound_month(m):
     return bound_cyclic(m,12)
 
 
-def bound_pentad(pentad):
-    return bound_cyclic(pentad,73)
+def bound_pentad(pentad,year=None):
+    dy,p = bound_cyclic(pentad,73)
+    if year is not None:
+        return dy+year,p
+    else:
+        return dy,p
 
 
 def month_to_daterange(year,month):
