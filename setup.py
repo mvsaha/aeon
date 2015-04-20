@@ -7,7 +7,7 @@ config = {
     'author': 'Michael Saha',
     'url': 'https://github.com/mvsaha/eon',
     'download_url': 'https://github.com/mvsaha/eon',
-    'author_email': 'https://github.com/mvsaha/eon',
+    'author_email': '1st <dot> last <at> gmail <dot> com',
     'version': '0.1.0',
     'packages': ['eon'],
     'name': 'eon'
