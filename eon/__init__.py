@@ -310,7 +310,7 @@ class DateRange:
                 else:
                     return self._start <= other and self._end >= other
 
-        elif type(self.other) is type(self):
+        elif type(other) is type(self):
             return other.start() in self and other.end() in self
 
         else:
