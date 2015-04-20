@@ -729,8 +729,10 @@ class DateRange:
         #    A generator that produces DateRanges inside of the bounds of the
         #    parent DateRange
         # 
+        # RAISES:
+        #    ValueError: if we call bools with something other than True or False
         # NOTES:
-        #    
+        # 
         
         if not (full is False or full is True):
             raise ValueError('full must be True or False.')
