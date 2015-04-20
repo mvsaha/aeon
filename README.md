@@ -3,6 +3,17 @@
 
 Written in pure python. Depends only on the built-in _datetime_ package.
 
+### Installing ***eon*** 
+On the command line (must have pip installed)
+```
+pip install https://github.com/mvsaha/eon/zipball/master
+```
+
+Now we can import it in python
+```python
+>>>import eon
+```
+
 ### Introduction
 This module defines the ```DateRange``` class, which wraps two dates to represent a duration of time. ```DateRanges``` can be constructed with two ```dates```:
 
