@@ -89,6 +89,12 @@ DateRange(1000-01-01 00:00:00 to 3000-01-01 00:00:00)
 DateRange(1000-01-01 00:00:00 to 2000-01-01 00:00:00)
 ```
 
+```slide()``` will create a new DateRange with both bounds shifted by an input ```timedelta```:
+```python
+>>>dr3 = dr.slide(timedelta(days=20,hours=10,microseconds=33))
+DateRange(1000-01-21 10:00:00:000033 to 2000-01-21 10:00:00.000033 )
+```
+
 ### Cycles
 Periodic timestamps can be retrieved from a ```DateRange``` by calling generators.
 
