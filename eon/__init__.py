@@ -297,8 +297,8 @@ class DateRange:
         
         if other is self:
             return True
-
-        elif isinstance(self.other,datetime.date):
+        
+        elif isinstance(other,datetime.date):
             if self._start is None: # No lower bound
                 if self._end is None:
                     return True
