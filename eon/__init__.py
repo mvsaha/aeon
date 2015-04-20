@@ -440,9 +440,26 @@ class DateRange:
         d = self._cast(d)
         return DateRange(self.start(),d)
 
+    def __add__(td):
+        # Slide by a timedelta
+        return self.slide(td)
+
+    def __sub__(td):
+        return self.slide(-td)
 
     def slide(self,td):
-        return DateRange(self.start()+td,self.end()+td)
+        
+        if self.start() is None:
+            new_start = None
+        else:
+            new_start = self.start() + td
+
+        if self.end() is None:
+            new_end = None
+        else:
+            new_end = self.end() + td
+
+        return DateRange(new_start,new_end)
 
 
     #----------------------------------------------------------------
