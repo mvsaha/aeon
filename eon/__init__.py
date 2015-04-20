@@ -423,6 +423,11 @@ class DateRange:
         d = self._cast(d)
         return DateRange(self.start(),d)
 
+
+    def slide(self,td):
+        return DateRange(self.start()+td,self.end()+td)
+
+
     #----------------------------------------------------------------
     #|        Generators for cycles inside of the DateRange         |
     #----------------------------------------------------------------
@@ -878,7 +883,7 @@ def pentad_to_daterange(year,pentad):
     return DateRange(d1,d2)
 
 
-def bound_cyclic(i,period): # Assume 1:period labels
+def bound_cyclic(i,period):
     if i >= 1 and i <= period:
         return(0,i)
     elif i > period:
