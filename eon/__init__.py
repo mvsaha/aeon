@@ -297,18 +297,24 @@ class DateRange:
         
         if other is self:
             return True
-        
+
+        elif other is None:
+            if self.start() is None or self.end() is None:
+                return True
+            else:
+                return False
+
         elif isinstance(other,datetime.date):
-            if self._start is None: # No lower bound
-                if self._end is None:
+            if self.start() is None: # No lower bound
+                if self.end() is None:
                     return True
                 else:
-                    return self._end >= other
+                    return self.end() >= other
             else:                   # Finite lower bound
-                if self._end is None:
-                    return self._start <= other
+                if self.end() is None:
+                    return self.start() <= other
                 else:
-                    return self._start <= other and self._end >= other
+                    return self.start() <= other and self.end() >= other
 
         elif type(other) is type(self):
             return other.start() in self and other.end() in self
