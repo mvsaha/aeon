@@ -298,7 +298,7 @@ class DateRange:
         if other is self:
             return True
 
-        elif isinstance(self.other,datetime.date)
+        elif isinstance(self.other,datetime.date):
             if self._start is None: # No lower bound
                 if self._end is None:
                     return True
@@ -312,7 +312,7 @@ class DateRange:
 
         elif type(self.other) is type(self):
             return other.start() in self and other.end() in self
-        
+
         else:
             raise TypeError('Cannot compare DateRange with '+str(type(other)))
 
