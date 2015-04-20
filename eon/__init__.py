@@ -277,34 +277,45 @@ class DateRange:
             return self._end
 
 
-    def __contains__(self,d):
+    def __contains__(self,other):
         # DESCRIPTION:
-        #    Check if a value is inside this DateRange.
+        #    Check if a value or DateRange is fully inside this DateRange.
         #
         # PARAMS:
-        #    d: datetime.date[time]
+        #    other: datetime.date[time] | DateRange
         #
         # RETURNS:
         #    bool
         #
         # NOTES:
         #    This will does not do any explicit error checking. Rather, an
-        #    error will be called if d is not None and is not comparable to
+        #    error will be called if other is not None and is not comparable to
         #    start, end or both.
         #
         # RAISES:
         #    TypeError: if d in not comparable to start or end
         
-        if self._start is None: # No lower bound
-            if self._end is None:
-                return True
-            else:
-                return self._end >= d
-        else:                   # Finite lower bound
-            if self._end is None:
-                return self._start <= d
-            else:
-                return self._start <= d and self._end >= d
+        if other is self:
+            return True
+
+        elif isinstance(self.other,datetime.date)
+            if self._start is None: # No lower bound
+                if self._end is None:
+                    return True
+                else:
+                    return self._end >= other
+            else:                   # Finite lower bound
+                if self._end is None:
+                    return self._start <= other
+                else:
+                    return self._start <= other and self._end >= other
+
+        elif type(self.other) is type(self):
+            return other.start() in self and other.end() in self
+        
+        else:
+            raise TypeError('Cannot compare DateRange with '+str(type(other)))
+
 
         
     def contains(self,date):
