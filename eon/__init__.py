@@ -433,12 +433,18 @@ class DateRange:
         return self.__str__()
     
     def startat(self,d):
-        d = self._cast(d)
-        return DateRange(d,self.end())
+        if type(d) is datetime.timedelta:
+            return DateRange(self.start()+d,self.end())
+        else:
+            d = self._cast(d)
+            return DateRange(d,self.end())
 
     def endat(self,d):
-        d = self._cast(d)
-        return DateRange(self.start(),d)
+        if type(d) is datetime.timedelta:
+            return DateRange(self.start(),self.end()+d)
+        else:
+            d = self._cast(d)
+            return DateRange(self.start(),d)
 
     def __add__(self,td):
         # Slide by a timedelta
