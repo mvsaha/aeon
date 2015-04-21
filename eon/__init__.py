@@ -467,7 +467,7 @@ class DateRange:
     #----------------------------------------------------------------
 
 
-    def cycles(self,dt):
+    def cycles(self,dt,n=0):
         if dt > datetime.timedelta(0):
             if self.start() is None:
                 raise ValueError("timedelta indicates starting at infinite"+
@@ -483,12 +483,14 @@ class DateRange:
         else:
             raise ValueError("timedelta cannot be 0.")
 
-        while d in self:
+        counter = 0
+        while d in self and (n is 0 or n>counter):
             yield d
             d += dt
+            counter += 1
 
 
-    def hours(self,snap=False,reverse=False):
+    def hours(self,n=0,snap=False,reverse=False):
         if reverse:
             if self.end() is None:
                 raise Exception("Cannot start at infinity.")
@@ -502,12 +504,14 @@ class DateRange:
             d = self.start()
             end = self.end()
         
-        while d in self:
+        counter = 0
+        while d in self and (n is 0 or n>counter):
             yield d
             d += dtime
+            counter += 1
     
 
-    def days(self,snap=False,reverse=False):
+    def days(self,n=0,snap=False,reverse=False):
         if reverse:
             if self.end() is None:
                 raise Exception("Cannot start at infinity.")
@@ -534,7 +538,8 @@ class DateRange:
         
         d = dsnap + d_offset
 
-        while d in self:
+        counter = 0
+        while d in self and (n is 0 or n>counter):
             yield d
             # Must break out dsnap rather than taking the containing pentad
             # of d on each iteration, because it is possible to start this
@@ -543,13 +548,16 @@ class DateRange:
             # date plus a 6-day d_offset may lead to a missed cycle.
             dsnap += dtime
             d = dsnap + d_offset
+            counter += 1
 
-    def rdays(self,snap=False,reverse=False,full=False):
+    def rdays(self,n=0,snap=False,reverse=False,full=False):
         # DESCRIPTION:
-        gen = self.days(snap=snap,reverse=reverse)
+        if n is not 0:
+            n+=1
+        gen = self.days(n=n,snap=snap,reverse=reverse)
         return self.rcycle(gen,snap=snap,reverse=reverse,full=full)
 
-    def pentads(self,snap=False,reverse=False):
+    def pentads(self,n=0,snap=False,reverse=False):
         # DESCRIPTION:
         #    Generate date(time)s representing the beginning of pentads in
         #    this DateRange
@@ -619,7 +627,8 @@ class DateRange:
 
         d = dsnap + d_offset
 
-        while d in self:
+        counter = 0
+        while d in self and (n is 0 or n>counter):
             yield d
             # Must break out dsnap rather than taking the containing pentad
             # of d on each iteration, because it is possible to start this
@@ -629,9 +638,10 @@ class DateRange:
             dy,p = bound_pentad( date_to_pentad(dsnap) + dpentad )
             dsnap = self._cast( pentad_to_datetime(dsnap.year+dy,p) )
             d = dsnap + d_offset
+            counter += 0
 
 
-    def rpentads(self,snap=False,reverse=False,full=False):
+    def rpentads(self,n=0,snap=False,reverse=False,full=False):
         # DESCRIPTION:
         #    Generate DateRanges within from this DateRange one pentad in
         #    duration and in chronological order.
@@ -660,13 +670,14 @@ class DateRange:
         # RAISES:
         #    ValueError: if we try starting the generator at an unbounded date
         #    StopIteration: once we have cycled throughall possible DateRanges
-
+        if n is not 0:
+            n+=1
         gen = self.pentads(reverse=reverse,snap=snap)
         return self.rcycle(gen,reverse=reverse,snap=snap,full=full)
     
 
     
-    def months(self,snap=False,reverse=False):
+    def months(self,n=0,snap=False,reverse=False):
         
         if reverse:
             if self.end() is None:
@@ -694,7 +705,8 @@ class DateRange:
 
         d = dsnap + d_offset
 
-        while d in self:
+        counter = 0
+        while d in self and (n is 0 or n>counter):
             yield d
             # Must break out dsnap rather than taking the containing pentad
             # of d on each iteration, because it is possible to start this
@@ -704,12 +716,15 @@ class DateRange:
             dy,m = bound_month(d.month+dmonth)
             dsnap = self._cast(datetime.datetime(d.year+dy,m,1))
             d = dsnap + d_offset
+            counter += 1
     
-    def rmonths(self,snap=False,reverse=False,full=False):
+    def rmonths(self,n=0,snap=False,reverse=False,full=False):
+        if n is not 0:
+            n+=1
         gen = self.months(snap=snap,reverse=reverse)
         return self.rcycle(gen,snap=snap,reverse=reverse,full=full)
     
-    def years(self,reverse=False,snap=False):
+    def years(self,n=0,reverse=False,snap=False):
 
         if reverse:
             if self.end() is None:
@@ -732,7 +747,8 @@ class DateRange:
             month,day = d.month,d.day
             d_offset = d - self._cast(datetime.datetime(d.year,month,day))
 
-        while d in self:
+        counter = 0
+        while d in self and (n is 0 or n>counter):
             yield d
 
             if snap is True:
@@ -741,7 +757,11 @@ class DateRange:
                 d = self._cast(datetime.datetime(d.year+dyear,month,day)+
                                d_offset)
 
-    def ryears(self,snap=False,reverse=False,full=False):
+            counter += 1
+
+    def ryears(self,n=0,snap=False,reverse=False,full=False):
+        if n is not 0:
+            n+=1
         gen = self.years(snap=snap,reverse=reverse)
         return self.rcycle(gen,snap=snap,reverse=reverse,full=full)
 
