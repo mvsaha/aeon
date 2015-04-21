@@ -403,6 +403,10 @@ class DateRange:
         else:
         	return None
 
+    #----------------------------------------------------------------
+    #|                          Operators                           |
+    #----------------------------------------------------------------
+
     def __lt__(self,date):
         return date > self.end()
 
@@ -431,7 +435,21 @@ class DateRange:
     
     def __repr__(self):
         return self.__str__()
-    
+
+
+    def __add__(self,td):
+        # Slide by a timedelta
+        return self.slide(td)
+
+
+    def __sub__(self,td):
+        return self.slide(-td)
+
+
+    #----------------------------------------------------------------
+    #|                            Methods                           |
+    #----------------------------------------------------------------
+
     def startat(self,d):
         if type(d) is datetime.timedelta:
             return DateRange(self.start()+d,self.end())
@@ -446,12 +464,6 @@ class DateRange:
             d = self._cast(d)
             return DateRange(self.start(),d)
 
-    def __add__(self,td):
-        # Slide by a timedelta
-        return self.slide(td)
-
-    def __sub__(self,td):
-        return self.slide(-td)
 
     def slide(self,td):
 
@@ -556,12 +568,14 @@ class DateRange:
             d = dsnap + d_offset
             counter += 1
 
+
     def rdays(self,n=0,snap=False,reverse=False,full=False):
         # DESCRIPTION:
         if n is not 0:
             n+=1
         gen = self.days(n=n,snap=snap,reverse=reverse)
         return self.rcycle(gen,snap=snap,reverse=reverse,full=full)
+
 
     def pentads(self,n=0,snap=False,reverse=False):
         # DESCRIPTION:
@@ -680,7 +694,6 @@ class DateRange:
             n+=1
         gen = self.pentads(reverse=reverse,snap=snap)
         return self.rcycle(gen,reverse=reverse,snap=snap,full=full)
-    
 
     
     def months(self,n=0,snap=False,reverse=False):
@@ -731,7 +744,6 @@ class DateRange:
             n+=1
         gen = self.months(n=n,snap=snap,reverse=reverse)
         return self.rcycle(gen,snap=snap,reverse=reverse,full=full)
-    
 
 
     def years(self,n=0,reverse=False,snap=False):
@@ -768,12 +780,12 @@ class DateRange:
                                d_offset)
             counter += 1
 
+
     def ryears(self,n=0,snap=False,reverse=False,full=False):
         if n is not 0:
             n+=1
         gen = self.years(n=n,snap=snap,reverse=reverse)
         return self.rcycle(gen,snap=snap,reverse=reverse,full=full)
-
 
 
     def rcycle(self,gen,snap=False,reverse=False,full=False):
