@@ -718,12 +718,16 @@ class DateRange:
             d = dsnap + d_offset
             counter += 1
     
+
+
     def rmonths(self,n=0,snap=False,reverse=False,full=False):
         if n is not 0:
             n+=1
-        gen = self.months(snap=snap,reverse=reverse)
+        gen = self.months(n=n,snap=snap,reverse=reverse)
         return self.rcycle(gen,snap=snap,reverse=reverse,full=full)
     
+
+
     def years(self,n=0,reverse=False,snap=False):
 
         if reverse:
@@ -756,14 +760,15 @@ class DateRange:
             else:
                 d = self._cast(datetime.datetime(d.year+dyear,month,day)+
                                d_offset)
-
             counter += 1
 
     def ryears(self,n=0,snap=False,reverse=False,full=False):
         if n is not 0:
             n+=1
-        gen = self.years(snap=snap,reverse=reverse)
+        gen = self.years(n=n,snap=snap,reverse=reverse)
         return self.rcycle(gen,snap=snap,reverse=reverse,full=full)
+
+
 
     def rcycle(self,gen,snap=False,reverse=False,full=False):
         # DESCRIPTION:
