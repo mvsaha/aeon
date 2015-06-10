@@ -92,7 +92,7 @@ class DateRange:
 
     def _validate(self,d):
         # DESCRIPTION:
-        #
+        # RETURNS: bool describing whether the input variable is of proper type
         # RAISES: Nothing
 
         if d is None:
