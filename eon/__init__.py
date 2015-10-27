@@ -7,35 +7,45 @@ __author__ = "Michael Vijay Saha"
 
 import datetime
 
+"""A line segment (or ray, or line) on the arrow of time."""
 class DateRange:
-    #A line segment (or ray, or line) on the arrow of time.
-
+    
     def __init__(self,date1,date2=None):
-        # DESCRIPTION:
-        #    Build a DateRange object
-        #
-        # PARAMS:
-        #    date1: datetime.date[time] | None | DateRange
-        #       One time bound (not necesarily the first one chronologically)
-        #       or a DateRange object (in which case date2 is not needed).
-        #
-        #    [date2]=None: datetime.date[time] | None | datetime.timedelta
-        #       Another time bound or a time period.
-        #
-        # NOTES:
-        #    If both date1 and date2 are dates, they must have identical
-        #    types. Date1 and date2 will be reordered internally, so date1
-        #    does not necessarily need to be before date2. If date2 is a
-        #    timedelta it can be negative.
-        #
-        # RAISES:
-        #    TypeError: if date1 or date2 is not of an approprite type.
-        #    ValueError: if date2 is specified when the input date1 is a
-        #       DateRange.
-
+        """Build a DateRange object.
+        
+        Args:
+            date1: datetime.date[time] | None | DateRange
+               One time bound (not necesarily the first one chronologically)
+               or a DateRange object (in which case date2 is not needed).
+        
+            date2: [None] | datetime.date[time] | None | datetime.timedelta
+               Another time bound or a time period. If `date1` is a 
+               `datetime.date[time]`, then a `datetime.timedelta` is also valid,
+               in which case `end` will be computed.
+               
+        
+        Notes:
+            If both `date1` and `date2` are dates, they must have identical
+            types. `date1` and `date2` will be reordered so that , so `date1`
+            does not necessarily need to be before date2. `None` is used to indicate
+            unbounded values. 
+            
+            If 'date2' is a timedelta it can be negative.
+        
+        Raises:
+            TypeError: if date1 is not a `datetime.date[time]` or `DateRange`.
+            TypeError: if date2 is not a `datetime.timedelta` or `type(date1)`.
+            ValueError: if `date2` is not `None` when `date1` is a `DateRange`.
+            
+        Examples:
+            >>>import datetime
+            >>>DateRange(datetime.datetime(2012,1,1),datetime.datetime(2012,1,3))
+            
+        """
+        
         self._start = None # Set these so that we can use validate()
         self._end = None
-
+        
         # Construction by DateRange (a special case)
         if isinstance(date1,type(self)):
             if date2 is not None:
@@ -91,10 +101,14 @@ class DateRange:
 
 
     def _validate(self,d):
-        # DESCRIPTION:
-        # RETURNS: bool describing whether the input variable is of proper type
-        # RAISES: Nothing
-
+        """ Ensure that a date is the same type as existing type.
+        
+        [RETURNS]
+            bool describing whether the input variable is of proper type
+            
+        [RAISES]
+            Nothing
+        """
         if d is None:
             return True
 
@@ -142,19 +156,18 @@ class DateRange:
                     str(self._dateclass))
 
     def start(self,setdate=False):
-        # DESCRIPTION:
-        #    Get or set the earliest bound for DateRange
-        #
-        # PARAMS:
-        #    [setdate]: datetime.date[time] | None
-        #
-        # RETURNS:
-        #    [datetime.date[time]] if set is not specified (getter mode)
-        #
-        # RAISES:
-        #    TypeError: if setdate does not match type(end)
-        #    ValueError: if setdate > end
-
+        """Get or set the earliest bound for DateRange
+        
+        [PARAMETERS]
+            [setdate]: datetime.date[time] | None
+        
+        RETURNS:
+            [datetime.date[time]] if set is not specified (getter mode)
+        
+        RAISES:
+            TypeError: if setdate does not match type(end)
+            ValueError: if setdate > end
+        """
         if setdate is not False:
             setdate = self._cast(setdate)
 
@@ -172,7 +185,7 @@ class DateRange:
                 self._start = setdate
 
             elif self.end() is None and isinstance(setdate,type(self.start())):
-            	self._start = setdate
+                self._start = setdate
 
             else:
                 raise TypeError('Can only set start to None or '+
@@ -185,19 +198,19 @@ class DateRange:
 
 
     def end(self,setdate=False):
-        # DESCRIPTION:
-        #    Get or set the latest bound for DateRange
-        #
-        # PARAMS:
-        #    [setdate]: datetime.date[time] | other
-        #
-        # RETURNS:
-        #    [datetime.date[time]] if setdate is not specified (getter mode)
-        #
-        # RAISES:
-        #    TypeError: if setdate does not match type(start)
-        #    ValueError: if setdate < start
-
+        """Get or set the latest bound for DateRange.
+        
+        [PARAMS]
+            [setdate]: datetime.date[time] | other
+        
+        [RETURNS]
+            [datetime.date[time]] if setdate is not specified (getter mode)
+        
+        [RAISES]
+            TypeError: if setdate does not match type(start)
+            ValueError: if setdate < start
+        """
+        
         if setdate is not False:
             setdate = self._cast(setdate)
 
@@ -213,10 +226,10 @@ class DateRange:
                         str(setdate))
 
                 self._end = setdate
-
+            
             elif ( self.start() is None and
                    isinstance(setdate,type(self.end())) ):
-            	self._end = setdate
+                self._end = setdate
 
             else:
                 raise TypeError('Can only set start to None or '+
@@ -352,10 +365,10 @@ class DateRange:
         if self.end() is not None and self.start() is not None:
             return (self.end() - self.start()) + self._resolution
         else:
-        	return None
+            return None
 
     #----------------------------------------------------------------
-    #|                          Operators                           |
+    #|                          Specials                            |
     #----------------------------------------------------------------
 
     def __lt__(self,date):
@@ -414,7 +427,7 @@ class DateRange:
         else:
             d = self._cast(d)
             return DateRange(self.start(),d)
-
+    
 
     def slide(self,td):
 
@@ -434,7 +447,6 @@ class DateRange:
     #----------------------------------------------------------------
     #|        Generators for cycles inside of the DateRange         |
     #----------------------------------------------------------------
-
 
     def cycles(self,dt,n=0):
         if dt > datetime.timedelta(0):
@@ -545,11 +557,11 @@ class DateRange:
         #    A pentad is defined as a duration of time that breaks the year
         #    into exactly 73 portions, with all but the last portion required
         #    to have exactly 5 days. The last pentad will have 6 days only on
-        #    leap years. The date[time]s generated here denote pentads by the
-        #    first (chronologically) bound,
+        #    leap years. The date[time]s generated here denote pentads relative
+        #    to the `start` bound:
         #        e.g.:  1/1, 1/6, 1/11, 1/16, 1/21, 1/31, 2/5, 2/10...
         #
-        #    If the starting value of the pentad, either self.start() or
+        #    If the starting value of the pentad, either, self.start() or
         #    self.end() if reverse if True, is not a 'clean' pentad that lands
         #    exactly on the list above, then the values are generated as
         #    follows:
@@ -836,7 +848,7 @@ class DateRange:
             # to the stopping criterion (self._start if reverse or
             # self._end if not) At this point, end is NOT in the range, so we
             # know that this DateRange is not 'full'
-
+            
             if full is False and start in self:
                 # Start must be in self to prevent the edge case where the
                 # last iteration ended perfectly on a bound, in which case we
@@ -935,7 +947,7 @@ def bound_pentad(pentad,year=None):
     if year is not None:
         return dy+year,p
     else:
-        return dy,p
+        return dy,p-
 
 
 def month_to_daterange(year,month):
