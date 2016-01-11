@@ -23,6 +23,7 @@ class DateRange:
                `datetime.date[time]`, then a `datetime.timedelta` is also valid,
                in which case `end` will be computed.
 
+
         Notes:
             If both `date1` and `date2` are dates, they must have identical
             types. `date1` and `date2` will be reordered so that , so `date1`
@@ -939,7 +940,7 @@ def bound_pentad(pentad,year=None):
     if year is not None:
         return dy+year,p
     else:
-        return dy,p-
+        return dy,p
 
 
 def month_to_daterange(year,month):
