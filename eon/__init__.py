@@ -22,8 +22,7 @@ class DateRange:
                Another time bound or a time period. If `date1` is a 
                `datetime.date[time]`, then a `datetime.timedelta` is also valid,
                in which case `end` will be computed.
-               
-        
+
         Notes:
             If both `date1` and `date2` are dates, they must have identical
             types. `date1` and `date2` will be reordered so that , so `date1`
@@ -268,23 +267,16 @@ class DateRange:
             else:
                 return False
 
-        elif isinstance(other,datetime.date):
-            if self.start() is None: # No lower bound
-                if self.end() is None:
-                    return True
-                else:
-                    return self.end() >= other
-            else:                   # Finite lower bound
-                if self.end() is None:
-                    return self.start() <= other
-                else:
-                    return self.start() <= other and self.end() >= other
-
-        elif type(other) is type(self):
-            return other.start() in self and other.end() in self
-
-        else:
-            raise TypeError('Cannot compare DateRange with '+str(type(other)))
+        if self.start() is None: # No lower bound
+            if self.end() is None:
+                return True
+            else:
+                return self.end() >= other
+        else:                   # Finite lower bound
+            if self.end() is None:
+                return self.start() <= other
+            else:
+                return self.start() <= other and self.end() >= other
 
 
 
