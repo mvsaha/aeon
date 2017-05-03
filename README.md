@@ -1,3 +1,5 @@
+***This was a learning project. You should not use this library!***
+
 # eon
 ***Line segments (or rays, or lines) on the arrow of time***
 
